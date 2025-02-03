@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
@@ -19,8 +18,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uuid := uuid.NewString()
-	err = (*database).AddAgent(uuid, 0)
+	AgentId, err := (*database).AddAgent()
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to add id to database: %v", err)
@@ -28,7 +26,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(api.RegisterResponse{Uuid: uuid})
+	err = json.NewEncoder(w).Encode(api.RegisterResponse{AgentId: AgentId})
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to serialize uuid with: %v", err)

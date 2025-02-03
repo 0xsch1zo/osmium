@@ -1,12 +1,12 @@
 package tools
 
 type Database interface {
-	AddAgent(string, uint32) error
+	AddAgent() (uint64, error)
 	SetupDatabase() error
 }
 
 type Agent struct {
-	Uuid         string
+	AgentId      uint64
 	TaskProgress uint32
 }
 

@@ -1,6 +1,8 @@
 package tools
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type SQLiteDatabase struct {
 	databaseHandle *sql.DB
@@ -14,11 +16,12 @@ func (sqliteDb *SQLiteDatabase) SetupDatabase() error {
 
 	querry :=
 		`CREATE TABLE IF NOT EXISTS Agents(
-AgentId VARCHAR(36),
+AgentId INTEGER PRIMARY KEY,
 TaskProgress INT
 ); 
-CREATE TABLE IF NOT EXISTS TaskQueue
-TaskQueue VARCHAR`
+CREATE TABLE IF NOT EXISTS TaskQueue(
+TaskQueue VARCHAR
+);`
 	_, err = databaseHandle.Exec(querry)
 	if err != nil {
 		return err
@@ -28,10 +31,21 @@ TaskQueue VARCHAR`
 	return nil
 }
 
-func (sqliteDb *SQLiteDatabase) AddAgent(uuid string, taskProgress uint32) error {
-	querry := "INSERT INTO Agents values(\"" + uuid + "\", 0);"
+func (sqliteDb *SQLiteDatabase) AddAgent() (uint64, error) {
+	querry := `INSERT INTO Agents (AgentId, TaskProgress) values(NULL, 0);`
 	_, err := sqliteDb.databaseHandle.Exec(querry)
-	return err
+	if err != nil {
+		return 0, err
+	}
+
+	// Get last row in db to get the AgentId of the newly created Agent
+	querry = `SELECT AgentId FROM Agents ORDER BY AgentId DESC LIMIT 1;` // in sqlite integer primary key will autoicrement as long as null is passed in
+	AgentIdSqlRow := sqliteDb.databaseHandle.QueryRow(querry)
+
+	var AgentId uint64
+	err = AgentIdSqlRow.Scan(&AgentId)
+
+	return AgentId, err
 }
 
 /*func (sqliteDb *SQLiteDatabase) SaveTaskQueue() error {
