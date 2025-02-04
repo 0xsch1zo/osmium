@@ -32,14 +32,14 @@ TaskQueue VARCHAR
 }
 
 func (sqliteDb *SQLiteDatabase) AddAgent() (uint64, error) {
-	querry := `INSERT INTO Agents (AgentId, TaskProgress) values(NULL, 0);`
+	querry := "INSERT INTO Agents (AgentId, TaskProgress) values(NULL, 0);"
 	_, err := sqliteDb.databaseHandle.Exec(querry)
 	if err != nil {
 		return 0, err
 	}
 
 	// Get last row in db to get the AgentId of the newly created Agent
-	querry = `SELECT AgentId FROM Agents ORDER BY AgentId DESC LIMIT 1;` // in sqlite integer primary key will autoicrement as long as null is passed in
+	querry = "SELECT AgentId FROM Agents ORDER BY AgentId DESC LIMIT 1;" // in sqlite integer primary key will autoicrement as long as null is passed in
 	AgentIdSqlRow := sqliteDb.databaseHandle.QueryRow(querry)
 
 	var AgentId uint64
