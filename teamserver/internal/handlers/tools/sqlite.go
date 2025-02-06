@@ -17,7 +17,8 @@ func (sqliteDb *SQLiteDatabase) SetupDatabase() error {
 	querry :=
 		`CREATE TABLE IF NOT EXISTS Agents(
 AgentId INTEGER PRIMARY KEY,
-TaskProgress INT
+TaskProgress INT,
+RSAPrivate VARCHAR
 ); 
 CREATE TABLE IF NOT EXISTS TaskQueue(
 TaskQueue VARCHAR
@@ -31,11 +32,16 @@ TaskQueue VARCHAR
 	return nil
 }
 
-func (sqliteDb *SQLiteDatabase) AddAgent() (uint64, error) {
-	querry := "INSERT INTO Agents (AgentId, TaskProgress) values(NULL, 0);"
-	_, err := sqliteDb.databaseHandle.Exec(querry)
+func (sqliteDb *SQLiteDatabase) AddAgent() (*Agent, error) {
+	rsaPriv, err := GenerateKey()
 	if err != nil {
-		return 0, err
+		return nil, err
+	}
+
+	querry := "INSERT INTO Agents (AgentId, TaskProgress, RSAPrivate) values(NULL, 0, ?);"
+	_, err = sqliteDb.databaseHandle.Exec(querry, PrivRsaToPem(rsaPriv))
+	if err != nil {
+		return nil, err
 	}
 
 	// Get last row in db to get the AgentId of the newly created Agent
@@ -45,11 +51,15 @@ func (sqliteDb *SQLiteDatabase) AddAgent() (uint64, error) {
 	var AgentId uint64
 	err = AgentIdSqlRow.Scan(&AgentId)
 
-	return AgentId, err
+	return &Agent{
+		AgentId:    AgentId,
+		PrivateKey: rsaPriv,
+	}, err
 }
 
-/*func (sqliteDb *SQLiteDatabase) SaveTaskQueue() error {
-	querry := "INSERT INTO TaskQueue values(\"" + Task + "\");"
+/*
+func (sqliteDb *SQLiteDatabase) SaveTaskQueue() error {
+	querry := "INSERT INTO TaskQueue values(?)"
 	_, err := sqliteDb.databaseHandle.Exec(querry)
 	return err
 }

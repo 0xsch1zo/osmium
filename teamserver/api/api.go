@@ -6,7 +6,8 @@ import (
 )
 
 type RegisterResponse struct {
-	AgentId uint64
+	AgentId   uint64
+	PublicKey string
 }
 
 type Error struct {

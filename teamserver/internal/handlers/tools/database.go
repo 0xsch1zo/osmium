@@ -1,12 +1,15 @@
 package tools
 
+import "crypto/rsa"
+
 type Database interface {
-	AddAgent() (uint64, error)
+	AddAgent() (*Agent, error)
 	SetupDatabase() error
 }
 
 type Agent struct {
 	AgentId      uint64
+	PrivateKey   *rsa.PrivateKey
 	TaskProgress uint32
 }
 

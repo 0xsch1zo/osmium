@@ -18,18 +18,28 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	AgentId, err := (*database).AddAgent()
+	agent, err := (*database).AddAgent()
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to add id to database: %v", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(api.RegisterResponse{AgentId: AgentId})
+	publicKeyPem, err := tools.PubRsaToPem(&agent.PrivateKey.PublicKey)
 	if err != nil {
 		api.InternalErrorHandler(w)
-		log.Printf("Failed to serialize uuid with: %v", err)
+		log.Printf("Failed to tranform the public key to PEM: %v", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(api.RegisterResponse{
+		AgentId:   agent.AgentId,
+		PublicKey: publicKeyPem,
+	})
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to serialize register response with: %v", err)
 		return
 	}
 }
