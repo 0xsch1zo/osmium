@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"strconv"
+
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
@@ -14,6 +16,7 @@ import (
 func Register(w http.ResponseWriter, r *http.Request) {
 	database, err := tools.NewDatabase()
 	if err != nil {
+		api.InternalErrorHandler(w)
 		log.Printf("Failed to open database with: %v", err)
 		return
 	}
@@ -44,7 +47,59 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*
-func (apiHandlers *Api) ServeTaskQueue(w http.ResponseWriter, r *http.Request) {
+func GetTasks(w http.ResponseWriter, r *http.Request) {
+	database, err := tools.NewDatabase()
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to open database with: %v", err)
+		return
+	}
+
+	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Print(err)
+		return
+	}
+
+	tasks, err := (*database).GetTasks(agentId)
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to get tasks for agent: %d - %v", agentId, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(api.GetTasksResponse{
+		Tasks: tasks,
+	})
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to serialize register response with: %v", err)
+		return
+	}
 }
-*/
+
+func PushTask(w http.ResponseWriter, r *http.Request) {
+	database, err := tools.NewDatabase()
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to open database with: %v", err)
+		return
+	}
+
+	var pushTasksReq api.PushTaskRequest
+	err = json.NewDecoder(r.Body).Decode(&pushTasksReq)
+	if err != nil {
+		api.RequestErrorHandler(w, err)
+		log.Printf("Bad request for task: %v", err)
+		return
+	}
+
+	err = (*database).TaskQueuePush(pushTasksReq.Task)
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to push to task queue with: %v", err)
+		return
+	}
+}

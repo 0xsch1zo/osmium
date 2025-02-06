@@ -10,6 +10,14 @@ type RegisterResponse struct {
 	PublicKey string
 }
 
+type GetTasksResponse struct {
+	Tasks []string
+}
+
+type PushTaskRequest struct {
+	Task string
+}
+
 type Error struct {
 	Code    int
 	Message string
