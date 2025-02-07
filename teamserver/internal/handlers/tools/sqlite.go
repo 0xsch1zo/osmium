@@ -14,16 +14,20 @@ func (sqliteDb *SQLiteDatabase) SetupDatabase() error {
 		return err
 	}
 
-	query :=
-		`CREATE TABLE IF NOT EXISTS Agents(
-AgentId INTEGER PRIMARY KEY,
-TaskProgress INT,
-PrivateKey VARCHAR
+	query := `CREATE TABLE IF NOT EXISTS Agents(
+    AgentId INTEGER PRIMARY KEY,
+    TaskProgress INT,
+    PrivateKey VARCHAR
 ); 
 CREATE TABLE IF NOT EXISTS TaskQueue(
-TaskId INTEGER PRIMARY KEY,
-Task VARCHAR
-);`
+    TaskId INTEGER PRIMARY KEY,
+    Task VARCHAR
+);
+CREATE TABLE IF NOT EXISTS Failures(
+    AgentId INT,
+    TaskId INT,
+    Error VARCHAR
+)`
 	_, err = databaseHandle.Exec(query)
 	if err != nil {
 		return err
@@ -80,6 +84,12 @@ func (sqliteDb *SQLiteDatabase) GetAgentTaskProgress(agentId uint64) (uint64, er
 	return taskProgress, err
 }
 
+func (sqliteDb *SQLiteDatabase) UpdateAgentTaskProgress(agentId uint64) error {
+	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM TaskQueue)"
+	_, err := sqliteDb.databaseHandle.Exec(query)
+	return err
+}
+
 func (sqliteDb *SQLiteDatabase) GetTasks(agentId uint64) ([]string, error) {
 	taskProgress, err := sqliteDb.GetAgentTaskProgress(agentId)
 	if err != nil {
@@ -97,6 +107,7 @@ func (sqliteDb *SQLiteDatabase) GetTasks(agentId uint64) ([]string, error) {
 		tasks = append(tasks, "")
 		tasksSqlRows.Scan(&tasks[len(tasks)-1])
 	}
+
 	return tasks, nil
 }
 

@@ -38,7 +38,7 @@ func main() {
 	flag.Parse()
 
 	http.HandleFunc("POST /register", handlers.Register)
-	http.HandleFunc("GET /agents/{id}/tasks", handlers.GetTasks)
+	http.HandleFunc("GET /agent/{id}/tasks", handlers.GetTasks)
 	http.HandleFunc("POST /taskQueue", handlers.PushTask)
 
 	if *https {

@@ -3,13 +3,14 @@ package tools
 import "crypto/rsa"
 
 type Database interface {
+	SetupDatabase() error
 	AddAgent() (*Agent, error)
 	GetAgent(agentId uint64) (*Agent, error)
 	GetTasks(agentId uint64) ([]string, error)
-	//UpdateAgentTaskProgress() error
+	UpdateAgentTaskProgress(agentId uint64) error
 	TaskQueuePush(task string) error
 	//TaskQueuePop() error
-	SetupDatabase() error
+
 }
 
 type Agent struct {
