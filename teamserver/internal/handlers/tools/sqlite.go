@@ -14,20 +14,27 @@ func (sqliteDb *SQLiteDatabase) SetupDatabase() error {
 		return err
 	}
 
-	query := `CREATE TABLE IF NOT EXISTS Agents(
-    AgentId INTEGER PRIMARY KEY,
-    TaskProgress INT,
-    PrivateKey VARCHAR
-); 
+	query := `
 CREATE TABLE IF NOT EXISTS TaskQueue(
     TaskId INTEGER PRIMARY KEY,
-    Task VARCHAR
+    Task VARCHAR NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS Agents(
+    AgentId INTEGER PRIMARY KEY,
+    TaskProgress INT NOT NULL,
+    PrivateKey VARCHAR NOT NULL,
+    FOREIGN KEY (TaskProgress) REFERENCES TaskQueue(TaskId) ON DELETE CASCADE
+); 
+
 CREATE TABLE IF NOT EXISTS Failures(
-    AgentId INT,
-    TaskId INT,
-    Error VARCHAR
-)`
+    AgentId INT NOT NULL,
+    TaskId INT NOT NULL,
+    DateTime DATETIME NOT NULL,
+    Error VARCHAR NOT NULL,
+    FOREIGN KEY (AgentId) REFERENCES Agents(AgentId) ON DELETE CASCADE,
+    FOREIGN KEY (TaskId)  REFERENCES TaskQueue(TaskId) ON DELETE CASCADE
+);`
 	_, err = databaseHandle.Exec(query)
 	if err != nil {
 		return err
