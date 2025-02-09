@@ -6,6 +6,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/handlers/tools"
 
 	"encoding/json"
@@ -14,7 +15,7 @@ import (
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	database, err := tools.NewDatabase()
+	database, err := database.NewDatabase()
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to open database with: %v", err)
@@ -48,7 +49,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetTasks(w http.ResponseWriter, r *http.Request) {
-	database, err := tools.NewDatabase()
+	database, err := database.NewDatabase()
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to open database with: %v", err)
@@ -81,7 +82,7 @@ func GetTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func PushTask(w http.ResponseWriter, r *http.Request) {
-	database, err := tools.NewDatabase()
+	database, err := database.NewDatabase()
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to open database with: %v", err)
@@ -100,6 +101,37 @@ func PushTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to push to task queue with: %v", err)
+		return
+	}
+}
+
+func SaveTaskResults(w http.ResponseWriter, r *http.Request) {
+	database, err := database.NewDatabase()
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to open database with: %v", err)
+		return
+	}
+
+	var taskResults api.PostTaskResultsRequest
+	err = json.NewDecoder(r.Body).Decode(&taskResults)
+	if err != nil {
+		api.RequestErrorHandler(w, err)
+		log.Printf("Bad request for task: %v", err)
+		return
+	}
+
+	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("%v", err)
+		return
+	}
+
+	err = (*database).SaveTaskResults(agentId, taskResults)
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to save task results: %v", err)
 		return
 	}
 }

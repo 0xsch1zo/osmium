@@ -10,12 +10,34 @@ type RegisterResponse struct {
 	PublicKey string
 }
 
+type TaskResponse struct {
+	TaskId uint64
+	Task   string
+}
+
 type GetTasksResponse struct {
-	Tasks []string
+	Tasks []TaskResponse
 }
 
 type PushTaskRequest struct {
 	Task string
+}
+
+type PostTaskResult struct {
+	TaskId uint64
+	Output string
+}
+
+type PostTaskResultsRequest struct {
+	TaskResults []PostTaskResult
+}
+
+type GetTaskResultRequest struct {
+	TaskId uint64
+}
+
+type GetTaskResultsRequest struct {
+	TaskIds []uint64
 }
 
 type Error struct {
