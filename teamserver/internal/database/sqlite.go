@@ -4,29 +4,27 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/sentientbottleofwine/osmium/teamserver/api"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/handlers/tools"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/osmium"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/teamserver"
 )
 
-// Make sure that
-//var _ AgentService = (*osmium.AgentService)(nil)
+// Make sure that db implements domain serevices
+var _ teamserver.AgentService = (*AgentService)(nil)
+var _ teamserver.TaskQueueService = (*TaskQueueService)(nil)
+var _ teamserver.TaskResultsService = (*TaskResultsService)(nil)
 
 type AgentService struct {
 	databaseHandle *sql.DB
 }
 
 type TaskQueueService struct {
-	agentService   osmium.AgentService
+	agentService   teamserver.AgentService
 	databaseHandle *sql.DB
 }
 
 type TaskResultsService struct {
 	databaseHandle *sql.DB
 }
-
-// Implements functions of Database
-//type SqliteDb struct{}
 
 func NewAgentService(dbHandle *sql.DB) *AgentService {
 	return &AgentService{
@@ -78,7 +76,7 @@ CREATE TABLE IF NOT EXISTS TaskResults(
 	return databaseHandle, err
 }
 
-func (agentService *AgentService) AddAgent() (*osmium.Agent, error) {
+func (agentService *AgentService) AddAgent() (*teamserver.Agent, error) {
 	rsaPriv, err := tools.GenerateKey()
 	if err != nil {
 		return nil, err
@@ -97,16 +95,16 @@ func (agentService *AgentService) AddAgent() (*osmium.Agent, error) {
 	var AgentId uint64
 	err = AgentIdSqlRow.Scan(&AgentId)
 
-	return &osmium.Agent{
+	return &teamserver.Agent{
 		AgentId:    AgentId,
 		PrivateKey: rsaPriv,
 	}, err
 }
 
-func (agentService *AgentService) GetAgent(agentId uint64) (*osmium.Agent, error) {
+func (agentService *AgentService) GetAgent(agentId uint64) (*teamserver.Agent, error) {
 	query := "SELECT AgentId, TaskProgress, PrivateKey FROM Agents WHERE AgentId = ?"
 	AgentSqlRow := agentService.databaseHandle.QueryRow(query, agentId)
-	var agent osmium.Agent
+	var agent teamserver.Agent
 	var agentPrivateKeyPem string
 	err := AgentSqlRow.Scan(&agent.AgentId, &agent.TaskProgress, &agentPrivateKeyPem)
 	if err != nil {
@@ -131,7 +129,7 @@ func (agentService *AgentService) UpdateAgentTaskProgress(agentId uint64) error 
 	return err
 }
 
-func (taskQueueService *TaskQueueService) GetTasks(agentId uint64) ([]osmium.Task, error) {
+func (taskQueueService *TaskQueueService) GetTasks(agentId uint64) ([]teamserver.Task, error) {
 	taskProgress, err := taskQueueService.agentService.GetAgentTaskProgress(agentId)
 	if err != nil {
 		return nil, err
@@ -143,9 +141,9 @@ func (taskQueueService *TaskQueueService) GetTasks(agentId uint64) ([]osmium.Tas
 		return nil, err
 	}
 
-	var tasks []osmium.Task
+	var tasks []teamserver.Task
 	for tasksSqlRows.Next() {
-		tasks = append(tasks, osmium.Task{})
+		tasks = append(tasks, teamserver.Task{})
 		err = tasksSqlRows.Scan(&(tasks[len(tasks)-1].TaskId), &(tasks[len(tasks)-1].Task))
 		if err != nil {
 			return nil, err
@@ -161,12 +159,12 @@ func (taskQueueService *TaskQueueService) TaskQueuePush(task string) error {
 	return err
 }
 
-func (taskResultsService *TaskResultsService) SaveTaskResults(agentId uint64, taskResults api.PostTaskResultsRequest) error {
+func (taskResultsService *TaskResultsService) SaveTaskResults(agentId uint64, taskResults []teamserver.TaskResultIn) error {
 	var queryBuilder strings.Builder
 	queryBuilder.WriteString("INSERT INTO TaskResults (AgentId, TaskId, Output) VALUES")
 	values := []interface{}{}
 
-	for _, taskResults := range taskResults.TaskResults {
+	for _, taskResults := range taskResults {
 		queryBuilder.WriteString("(?, ?, ?),")
 		values = append(values, agentId, taskResults.TaskId, taskResults.Output)
 	}
@@ -183,10 +181,10 @@ func (taskResultsService *TaskResultsService) SaveTaskResults(agentId uint64, ta
 	return err
 }
 
-func (taskResultsService *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*osmium.TaskResult, error) {
+func (taskResultsService *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error) {
 	query := "SELECT Output, Task FROM TaskResults WHERE agentId = ? AND taskId = ? INNER JOIN Tasks ON TaskResults.TaskId = Tasks.TaskId"
 	taskResultsSqlRow := taskResultsService.databaseHandle.QueryRow(query)
-	taskResult := osmium.TaskResult{}
+	taskResult := teamserver.TaskResultOut{}
 	err := taskResultsSqlRow.Scan(&taskResult.TaskId, &taskResult.Task, &taskResult.Output)
 	if err != nil {
 		return nil, err
@@ -195,16 +193,16 @@ func (taskResultsService *TaskResultsService) GetTaskResult(agentId uint64, task
 	return &taskResult, nil
 }
 
-func (taskResultsService *TaskResultsService) GetTaskResults(agentId uint64) ([]osmium.TaskResult, error) {
+func (taskResultsService *TaskResultsService) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
 	query := "SELECT TaskResults.TaskId,Task, Output, FROM TaskResults WHERE agentId = ? INNER JOIN Tasks ON TaskResults.TaskId = Tasks.TaskId"
 	taskResultsSqlRows, err := taskResultsService.databaseHandle.Query(query)
 	if err != nil {
 		return nil, err
 	}
 
-	taskResults := []osmium.TaskResult{}
+	taskResults := []teamserver.TaskResultOut{}
 	for taskResultsSqlRows.Next() {
-		taskResult := osmium.TaskResult{}
+		taskResult := teamserver.TaskResultOut{}
 		err := taskResultsSqlRows.Scan(&taskResult.TaskId, &taskResult.Task, &taskResult.Output)
 		if err != nil {
 			return nil, err

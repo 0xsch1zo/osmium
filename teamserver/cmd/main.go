@@ -67,7 +67,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server := myhttp.NewServer(*port, http.DefaultServeMux)
+	server := myhttp.NewServer(*port, http.servea)
 	server.AgentService = database.NewAgentService(databaseHandle)
 	server.TaskQueueService = database.NewTaskQueueService(databaseHandle)
 	server.TaskResultsService = database.NewTaskResultsService(databaseHandle)

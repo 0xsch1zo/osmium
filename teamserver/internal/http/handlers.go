@@ -1,28 +1,21 @@
-package handlers
+package http
 
 import (
-	"strconv"
-
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/handlers/tools"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/teamserver"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
 
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 )
 
-func Register(w http.ResponseWriter, r *http.Request) {
-	database, err := database.NewDatabase()
-	if err != nil {
-		api.InternalErrorHandler(w)
-		log.Printf("Failed to open database with: %v", err)
-		return
-	}
-
-	agent, err := (*database).AddAgent()
+func (server *Server) Register(w http.ResponseWriter, r *http.Request) {
+	agent, err := server.AgentService.AddAgent()
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to add id to database: %v", err)
@@ -48,14 +41,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetTasks(w http.ResponseWriter, r *http.Request) {
-	database, err := database.NewDatabase()
-	if err != nil {
-		api.InternalErrorHandler(w)
-		log.Printf("Failed to open database with: %v", err)
-		return
-	}
-
+func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
 		api.InternalErrorHandler(w)
@@ -63,16 +49,18 @@ func GetTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := (*database).GetTasks(agentId)
+	tasks, err := server.TaskQueueService.GetTasks(agentId)
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to get tasks for agent: %d - %v", agentId, err)
 		return
 	}
 
+	t1 := teamserver.Task{}
+	t2 := api.TaskResponse(t1)
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(api.GetTasksResponse{
-		Tasks: tasks,
+		Tasks: api.TaskResponse(tasks),
 	})
 	if err != nil {
 		api.InternalErrorHandler(w)

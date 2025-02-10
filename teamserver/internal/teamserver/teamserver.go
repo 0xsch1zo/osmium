@@ -16,7 +16,12 @@ type Task struct {
 	Task   string
 }
 
-type TaskResult struct {
+type TaskResultIn struct {
+	TaskId uint64
+	Output string
+}
+
+type TaskResultOut struct {
 	Task
 	Output string
 }
@@ -35,9 +40,9 @@ type TaskQueueService interface {
 
 // TOOO: Figure out how to translate api model to domain model when they're not one to one
 type TaskResultsService interface {
-	SaveTaskResults(agentId uint64) error
-	GetTaskResult(agentId uint64, taskId uint64) (*TaskResult, error)
-	GetTaskResults(agentId uint64) ([]TaskResult, error)
+	SaveTaskResults(agentId uint64, taskResults []TaskResultIn) error
+	GetTaskResult(agentId uint64, taskId uint64) (*TaskResultOut, error)
+	GetTaskResults(agentId uint64) ([]TaskResultOut, error)
 }
 
 type Serivces interface {

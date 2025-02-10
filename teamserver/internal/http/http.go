@@ -8,7 +8,7 @@ import (
 )
 
 type Server struct {
-	server *http.Server
+	Server *http.Server
 	teamserver.AgentService
 	teamserver.TaskQueueService
 	teamserver.TaskResultsService
@@ -16,7 +16,7 @@ type Server struct {
 
 func NewServer(port int, serveMux *http.ServeMux) *Server {
 	return &Server{
-		server: &http.Server{
+		Server: &http.Server{
 			Addr: ":" + strconv.Itoa(port),
 		},
 	}

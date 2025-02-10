@@ -23,6 +23,7 @@ type PushTaskRequest struct {
 	Task string
 }
 
+// Task result input
 type PostTaskResult struct {
 	TaskId uint64
 	Output string
@@ -32,6 +33,7 @@ type PostTaskResultsRequest struct {
 	TaskResults []PostTaskResult
 }
 
+// Task result output
 type GetTaskResultRequest struct {
 	TaskId uint64
 }
