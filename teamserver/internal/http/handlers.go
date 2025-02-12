@@ -3,9 +3,9 @@ package http
 import (
 	_ "github.com/mattn/go-sqlite3"
 
+	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
 
 	"encoding/json"

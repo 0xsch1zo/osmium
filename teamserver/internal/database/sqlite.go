@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/handlers/tools"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/teamserver"
+	"github.com/sentientbottleofwine/osmium/teamserver"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
 )
 
 // Make sure that db implements domain serevices

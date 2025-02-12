@@ -2,7 +2,6 @@ package teamserver
 
 import (
 	"crypto/rsa"
-	"database/sql"
 )
 
 type Agent struct {
@@ -34,7 +33,7 @@ type AgentService interface {
 }
 
 type TaskQueueService interface {
-	TaskQueuePush(task string) error // TODO: Use api structs as input
+	TaskQueuePush(task string) error
 	GetTasks(agentId uint64) ([]Task, error)
 }
 
@@ -43,10 +42,4 @@ type TaskResultsService interface {
 	SaveTaskResults(agentId uint64, taskResults []TaskResultIn) error
 	GetTaskResult(agentId uint64, taskId uint64) (*TaskResultOut, error)
 	GetTaskResults(agentId uint64) ([]TaskResultOut, error)
-}
-
-type Serivces interface {
-	NewAgentService(*sql.DB) (AgentService, error)
-	NewTaskQueueService(*sql.DB) (TaskQueueService, error)
-	NewTaskResultService(*sql.DB) (TaskResultsService, error)
 }

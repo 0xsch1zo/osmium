@@ -8,9 +8,7 @@ import (
 	"strconv"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/handlers"
 	myhttp "github.com/sentientbottleofwine/osmium/teamserver/internal/http"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/teamserver"
 )
 
 func checkIfArgDefined(argName string) (bool, error) {

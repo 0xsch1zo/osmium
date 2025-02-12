@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/teamserver"
+	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
 type Server struct {
