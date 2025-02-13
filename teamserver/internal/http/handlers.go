@@ -1,12 +1,7 @@
 package http
 
 import (
-	_ "github.com/mattn/go-sqlite3"
-
-	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
 
 	"encoding/json"
 	"log"
@@ -22,18 +17,14 @@ func (server *Server) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	publicKeyPem, err := tools.PubRsaToPem(&agent.PrivateKey.PublicKey)
+	resp, err := AgentToRegisterResponse(agent)
 	if err != nil {
 		api.InternalErrorHandler(w)
-		log.Printf("Failed to tranform the public key to PEM: %v", err)
-		return
+		log.Printf("%v", err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(api.RegisterResponse{
-		AgentId:   agent.AgentId,
-		PublicKey: publicKeyPem,
-	})
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to serialize register response with: %v", err)
@@ -56,12 +47,9 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t1 := teamserver.Task{}
-	t2 := api.TaskResponse(t1)
+	resp := TasksToGetTasksResponse(tasks)
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(api.GetTasksResponse{
-		Tasks: api.TaskResponse(tasks),
-	})
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to serialize register response with: %v", err)
@@ -69,23 +57,16 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func PushTask(w http.ResponseWriter, r *http.Request) {
-	database, err := database.NewDatabase()
-	if err != nil {
-		api.InternalErrorHandler(w)
-		log.Printf("Failed to open database with: %v", err)
-		return
-	}
-
+func (server *Server) PushTask(w http.ResponseWriter, r *http.Request) {
 	var pushTasksReq api.PushTaskRequest
-	err = json.NewDecoder(r.Body).Decode(&pushTasksReq)
+	err := json.NewDecoder(r.Body).Decode(&pushTasksReq)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
 		log.Printf("Bad request for task: %v", err)
 		return
 	}
 
-	err = (*database).TaskQueuePush(pushTasksReq.Task)
+	err = server.TaskQueueService.TaskQueuePush(pushTasksReq.Task)
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to push to task queue with: %v", err)
@@ -93,16 +74,9 @@ func PushTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SaveTaskResults(w http.ResponseWriter, r *http.Request) {
-	database, err := database.NewDatabase()
-	if err != nil {
-		api.InternalErrorHandler(w)
-		log.Printf("Failed to open database with: %v", err)
-		return
-	}
-
+func (server *Server) SaveTaskResults(w http.ResponseWriter, r *http.Request) {
 	var taskResults api.PostTaskResultsRequest
-	err = json.NewDecoder(r.Body).Decode(&taskResults)
+	err := json.NewDecoder(r.Body).Decode(&taskResults)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
 		log.Printf("Bad request for task: %v", err)
@@ -116,7 +90,7 @@ func SaveTaskResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = (*database).SaveTaskResults(agentId, taskResults)
+	err = server.TaskResultsService.SaveTaskResults(agentId, PostTaskResultsRequestToTaskResultsIn(&taskResults))
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to save task results: %v", err)
