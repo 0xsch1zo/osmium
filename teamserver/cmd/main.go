@@ -4,11 +4,9 @@ import (
 	"errors"
 	"flag"
 	"log"
-	"net/http"
-	"strconv"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
-	myhttp "github.com/sentientbottleofwine/osmium/teamserver/internal/http"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/http"
 )
 
 func checkIfArgDefined(argName string) (bool, error) {
@@ -38,11 +36,6 @@ func main() {
 
 	flag.Parse()
 
-	http.HandleFunc("POST /register", handlers.Register)
-	http.HandleFunc("POST /taskQueue", handlers.PushTask)
-	http.HandleFunc("GET /agent/{id}/tasks", handlers.GetTasks)
-	http.HandleFunc("GET /agent/{id}/result", handlers.SaveTaskResults)
-
 	if *https {
 		if len(*certificate) == 0 || len(*key) == 0 {
 			log.Fatal("Key or certificate was not supplied")
@@ -58,20 +51,18 @@ func main() {
 		}
 	}
 
-	log.Print("Starting listening on port: " + strconv.Itoa(*port))
-
+	server := http.NewServer(*port)
 	databaseHandle, err := database.SetupDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	server := myhttp.NewServer(*port, http.servea)
 	server.AgentService = database.NewAgentService(databaseHandle)
 	server.TaskQueueService = database.NewTaskQueueService(databaseHandle)
 	server.TaskResultsService = database.NewTaskResultsService(databaseHandle)
+
 	if *https {
-		log.Fatal(http.ListenAndServeTLS(":"+strconv.Itoa(*port), *certificate, *key, nil))
+		server.ListenAndServeTLS(*certificate, *key)
 	} else {
-		log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*port), nil))
+		server.ListenAndServe()
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"strings"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
 )
