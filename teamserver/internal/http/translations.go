@@ -44,7 +44,7 @@ func TaskResultsOutToGetTaskResultsResponse(taskResultsOut []teamserver.TaskResu
 			Output string
 		}{
 			TaskId: taskResultOut.TaskId,
-			Task:   taskResultOut.Task.Task,
+			Task:   taskResultOut.Task,
 			Output: taskResultOut.Output,
 		})
 	}

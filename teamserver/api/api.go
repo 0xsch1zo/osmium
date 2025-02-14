@@ -28,7 +28,7 @@ type PostTaskResultsRequest struct {
 	}
 }
 
-type GetTaskResultsRequest struct {
+type GetTaskResultRequest struct {
 	TaskIds []uint64
 }
 

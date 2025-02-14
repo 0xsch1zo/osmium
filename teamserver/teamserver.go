@@ -21,7 +21,8 @@ type TaskResultIn struct {
 }
 
 type TaskResultOut struct {
-	Task
+	TaskId uint64
+	Task   string
 	Output string
 }
 

@@ -71,7 +71,8 @@ CREATE TABLE IF NOT EXISTS TaskResults(
     TaskId INT NOT NULL,
     Output VARCHAR NOT NULL,
     FOREIGN KEY (AgentId) REFERENCES Agents(AgentId) ON DELETE CASCADE,
-    FOREIGN KEY (TaskId)  REFERENCES TaskQueue(TaskId) ON DELETE CASCADE
+    FOREIGN KEY (TaskId)  REFERENCES TaskQueue(TaskId) ON DELETE CASCADE,
+    UNIQUE (AgentId, TaskId)
 );`
 	_, err = databaseHandle.Exec(query)
 	return databaseHandle, err
@@ -183,7 +184,7 @@ func (taskResultsService *TaskResultsService) SaveTaskResults(agentId uint64, ta
 }
 
 func (taskResultsService *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error) {
-	query := "SELECT Output, Task FROM TaskResults WHERE agentId = ? AND taskId = ? INNER JOIN Tasks ON TaskResults.TaskId = Tasks.TaskId"
+	query := "SELECT Task, Output FROM TaskResults INNER JOIN TaskQueue ON TaskResults.TaskId = TaskQueue.TaskId WHERE agentId = ? AND taskId = ?"
 	taskResultsSqlRow := taskResultsService.databaseHandle.QueryRow(query)
 	taskResult := teamserver.TaskResultOut{}
 	err := taskResultsSqlRow.Scan(&taskResult.TaskId, &taskResult.Task, &taskResult.Output)
@@ -195,8 +196,8 @@ func (taskResultsService *TaskResultsService) GetTaskResult(agentId uint64, task
 }
 
 func (taskResultsService *TaskResultsService) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
-	query := "SELECT TaskResults.TaskId,Task, Output, FROM TaskResults WHERE agentId = ? INNER JOIN Tasks ON TaskResults.TaskId = Tasks.TaskId"
-	taskResultsSqlRows, err := taskResultsService.databaseHandle.Query(query)
+	query := "SELECT TaskResults.TaskId, Task, Output FROM TaskResults INNER JOIN TaskQueue ON TaskResults.TaskId = TaskQueue.TaskId WHERE agentId = ?"
+	taskResultsSqlRows, err := taskResultsService.databaseHandle.Query(query, agentId)
 	if err != nil {
 		return nil, err
 	}
@@ -208,6 +209,8 @@ func (taskResultsService *TaskResultsService) GetTaskResults(agentId uint64) ([]
 		if err != nil {
 			return nil, err
 		}
+
+		taskResults = append(taskResults, taskResult)
 	}
 
 	return taskResults, nil

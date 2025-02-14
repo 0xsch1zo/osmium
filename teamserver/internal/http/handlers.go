@@ -79,7 +79,7 @@ func (server *Server) SaveTaskResults(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&taskResults)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
-		log.Printf("Bad request for task: %v", err)
+		log.Printf("Bad request: %v", err)
 		return
 	}
 
@@ -94,6 +94,32 @@ func (server *Server) SaveTaskResults(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		api.InternalErrorHandler(w)
 		log.Printf("Failed to save task results: %v", err)
+		return
+	}
+}
+
+func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
+	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("%v", err)
+		return
+	}
+
+	taskResultsDomain, err := server.TaskResultsService.GetTaskResults(agentId)
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to get task results: %v", err)
+		return
+	}
+
+	resp := TaskResultsOutToGetTaskResultsResponse(taskResultsDomain)
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		api.InternalErrorHandler(w)
+		log.Printf("Failed to serialize response with: %v", err)
 		return
 	}
 }

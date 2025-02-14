@@ -35,7 +35,8 @@ func (server *Server) registerHandlers() {
 	server.mux.HandleFunc("POST /register", server.Register)
 	server.mux.HandleFunc("POST /taskQueue", server.PushTask)
 	server.mux.HandleFunc("GET /agents/{id}/tasks", server.GetTasks)
-	server.mux.HandleFunc("GET /agents/{id}/results", server.SaveTaskResults)
+	server.mux.HandleFunc("POST /agents/{id}/results", server.SaveTaskResults)
+	server.mux.HandleFunc("GET /agents/{id}/results", server.GetTaskResults)
 }
 
 func (server *Server) ListenAndServe() {
