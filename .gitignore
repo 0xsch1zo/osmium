@@ -2,3 +2,4 @@ teamserver.db
 teamserver
 !teamserver/
 .env/
+tmp/
