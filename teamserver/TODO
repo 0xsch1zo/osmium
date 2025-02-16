@@ -1,0 +1,4 @@
+Rearcitecture to make it even easier to swap dbs make sqlite subpackage of database
+move buisness logic from database package
+check for uniqueness in such way to return client error
+WRITE THE FUCKING UNIT TESTS
