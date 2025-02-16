@@ -49,7 +49,7 @@ func writeError(w http.ResponseWriter, error Error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(error.Code)
 
-	json.NewEncoder(w).Encode(error)
+	_ = json.NewEncoder(w).Encode(error)
 }
 
 func RequestErrorHandler(w http.ResponseWriter, err error) {
