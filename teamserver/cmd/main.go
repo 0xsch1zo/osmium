@@ -51,15 +51,12 @@ func main() {
 		}
 	}
 
-	server := http.NewServer(*port)
-	databaseHandle, err := database.SetupDatabase()
+	db, err := database.NewDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
-	server.AgentService = database.NewAgentService(databaseHandle)
-	server.TaskQueueService = database.NewTaskQueueService(databaseHandle)
-	server.TaskResultsService = database.NewTaskResultsService(databaseHandle)
 
+	server := http.NewServer(*port, db)
 	if *https {
 		server.ListenAndServeTLS(*certificate, *key)
 	} else {

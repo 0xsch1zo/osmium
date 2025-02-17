@@ -1,0 +1,93 @@
+package sqlite
+
+import (
+	"database/sql"
+	"fmt"
+
+	"github.com/sentientbottleofwine/osmium/teamserver"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
+)
+
+func (agentService *AgentService) AddAgent() (*teamserver.Agent, error) {
+	rsaPriv, err := tools.GenerateKey()
+	if err != nil {
+		return nil, teamserver.NewServerError(err.Error())
+	}
+
+	query := "INSERT INTO Agents (AgentId, TaskProgress, PrivateKey) values(NULL, 0, ?);"
+	_, err = agentService.databaseHandle.Exec(query, tools.PrivRsaToPem(rsaPriv))
+	if err != nil {
+		return nil, teamserver.NewServerError(err.Error())
+	}
+
+	// Get last row in db to get the AgentId of the newly created Agent
+	query = "SELECT AgentId FROM Agents ORDER BY AgentId DESC LIMIT 1;" // in sqlite integer primary key will autoicrement as long as null is passed in
+	AgentIdSqlRow := agentService.databaseHandle.QueryRow(query)
+
+	var AgentId uint64
+	err = AgentIdSqlRow.Scan(&AgentId)
+	if err != nil {
+		return nil, teamserver.NewServerError(err.Error())
+	}
+
+	return &teamserver.Agent{
+		AgentId:    AgentId,
+		PrivateKey: rsaPriv,
+	}, nil
+}
+
+func (agentService *AgentService) GetAgent(agentId uint64) (*teamserver.Agent, error) {
+	query := "SELECT AgentId, TaskProgress, PrivateKey FROM Agents WHERE AgentId = ?"
+	AgentSqlRow := agentService.databaseHandle.QueryRow(query, agentId)
+
+	var agent teamserver.Agent
+	var agentPrivateKeyPem string
+	err := AgentSqlRow.Scan(&agent.AgentId, &agent.TaskProgress, &agentPrivateKeyPem)
+	if err == sql.ErrNoRows {
+		return nil, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
+	} else if err != nil {
+		return nil, teamserver.NewServerError(err.Error())
+	}
+
+	agent.PrivateKey, err = tools.PemToPrivRsa(agentPrivateKeyPem)
+	if err != nil {
+		return nil, teamserver.NewServerError(err.Error())
+	}
+	return &agent, nil
+}
+
+func (agentService *AgentService) AgentExists(agentId uint64) (bool, error) {
+	query := "SELECT AgentId FROM Agents WHERE AgentId = ?"
+	sqlRow := agentService.databaseHandle.QueryRow(query, agentId)
+
+	var temp uint64
+	err := sqlRow.Scan(&temp)
+	if err == sql.ErrNoRows {
+		return false, nil
+	} else if err != nil {
+		return false, teamserver.NewServerError(err.Error())
+	}
+
+	return true, nil
+}
+
+func (agentService *AgentService) GetAgentTaskProgress(agentId uint64) (uint64, error) {
+	query := "SELECT TaskProgress FROM Agents WHERE AgentId = ?"
+	AgentSqlRow := agentService.databaseHandle.QueryRow(query, agentId)
+	var taskProgress uint64
+	err := AgentSqlRow.Scan(&taskProgress)
+	if err == sql.ErrNoRows {
+		return 0, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
+	} else if err != nil {
+		return 0, teamserver.NewServerError(err.Error())
+	}
+
+	return taskProgress, nil
+}
+
+// TODO: Fix this shit
+func (agentService *AgentService) UpdateAgentTaskProgress(agentId uint64) error {
+	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM TaskQueue)"
+	_, err := agentService.databaseHandle.Exec(query)
+	return err
+}

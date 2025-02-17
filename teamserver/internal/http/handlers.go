@@ -23,7 +23,7 @@ func ApiErrorHandler(err error, w http.ResponseWriter) {
 }
 
 func (server *Server) Register(w http.ResponseWriter, r *http.Request) {
-	agent, err := server.AgentService.AddAgent()
+	agent, err := server.Database.AddAgent()
 	if err != nil {
 		ApiErrorHandler(err, w)
 		log.Printf("Failed to add id to database: %v", err)
@@ -53,7 +53,7 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := server.TaskQueueService.GetTasks(agentId)
+	tasks, err := server.Database.GetTasks(agentId)
 	if err != nil {
 		ApiErrorHandler(err, w)
 		log.Printf("Failed to get tasks for agent: %d - %v", agentId, err)
@@ -79,7 +79,7 @@ func (server *Server) PushTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = server.TaskQueueService.TaskQueuePush(pushTasksReq.Task)
+	err = server.Database.TaskQueuePush(pushTasksReq.Task)
 	if err != nil {
 		ApiErrorHandler(err, w)
 		log.Printf("Failed to push to task queue with: %v", err)
@@ -103,7 +103,7 @@ func (server *Server) SaveTaskResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = server.TaskResultsService.SaveTaskResults(agentId, PostTaskResultsRequestToTaskResultsIn(&taskResults))
+	err = server.Database.SaveTaskResults(agentId, PostTaskResultsRequestToTaskResultsIn(&taskResults))
 	if err != nil {
 		ApiErrorHandler(err, w)
 		log.Printf("Failed to save task results: %v", err)
@@ -119,7 +119,7 @@ func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskResultsDomain, err := server.TaskResultsService.GetTaskResults(agentId)
+	taskResultsDomain, err := server.Database.GetTaskResults(agentId)
 	if err != nil {
 		ApiErrorHandler(err, w)
 		log.Printf("Failed to get task results: %v", err)

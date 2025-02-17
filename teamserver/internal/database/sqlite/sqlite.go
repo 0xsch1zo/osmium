@@ -1,22 +1,20 @@
-package database
+package sqlite
 
 import (
 	"database/sql"
-	"fmt"
-	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sentientbottleofwine/osmium/teamserver"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
 )
 
-// Make sure that db implements domain serevices
-var _ teamserver.AgentService = (*AgentService)(nil)
-var _ teamserver.TaskQueueService = (*TaskQueueService)(nil)
-var _ teamserver.TaskResultsService = (*TaskResultsService)(nil)
+const errAgentIdNotFoundFmt = "AgentId not found: %d"
+const errTaskIdNotFoundFmt = "TaskId not found: %d"
 
-var errAgentIdNotFoundFmt string = "AgentId not found: %d"
-var errTaskIdNotFoundFmt string = "TaskId not found: %d"
+type Sqlite struct {
+	teamserver.AgentService
+	teamserver.TaskQueueService
+	teamserver.TaskResultsService
+}
 
 type AgentService struct {
 	databaseHandle *sql.DB
@@ -33,29 +31,29 @@ type TaskResultsService struct {
 	taskQueueService teamserver.TaskQueueService
 }
 
-func NewAgentService(dbHandle *sql.DB) *AgentService {
+func newAgentService(dbHandle *sql.DB) *AgentService {
 	return &AgentService{
 		databaseHandle: dbHandle,
 	}
 }
 
-func NewTaskQueueService(dbHandle *sql.DB) *TaskQueueService {
+func newTaskQueueService(dbHandle *sql.DB) *TaskQueueService {
 	return &TaskQueueService{
-		agentService:   NewAgentService(dbHandle),
+		agentService:   newAgentService(dbHandle),
 		databaseHandle: dbHandle,
 	}
 }
 
-func NewTaskResultsService(dbHandle *sql.DB) *TaskResultsService {
+func newTaskResultsService(dbHandle *sql.DB) *TaskResultsService {
 	return &TaskResultsService{
 		databaseHandle:   dbHandle,
-		agentService:     NewAgentService(dbHandle),
-		taskQueueService: NewTaskQueueService(dbHandle),
+		agentService:     newAgentService(dbHandle),
+		taskQueueService: newTaskQueueService(dbHandle),
 	}
 }
 
 // Shitty code use migrations or something
-func SetupDatabase() (*sql.DB, error) {
+func SetupDatabase() (*Sqlite, error) {
 	databaseHandle, err := sql.Open("sqlite3", "teamserver.db")
 	if err != nil {
 		return nil, err
@@ -83,9 +81,15 @@ CREATE TABLE IF NOT EXISTS TaskResults(
     UNIQUE (AgentId, TaskId)
 );`
 	_, err = databaseHandle.Exec(query)
-	return databaseHandle, err
+
+	return &Sqlite{
+		AgentService:       newAgentService(databaseHandle),
+		TaskQueueService:   newTaskQueueService(databaseHandle),
+		TaskResultsService: newTaskResultsService(databaseHandle),
+	}, err
 }
 
+/*
 func (agentService *AgentService) AddAgent() (*teamserver.Agent, error) {
 	rsaPriv, err := tools.GenerateKey()
 	if err != nil {
@@ -149,20 +153,6 @@ func (agentService *AgentService) AgentExists(agentId uint64) (bool, error) {
 	return true, nil
 }
 
-func (taskQueueService *TaskQueueService) TaskExists(taskId uint64) (bool, error) {
-	query := "SELECT TaskId FROM TaskQueue WHERE TaskId = ?"
-	sqlRow := taskQueueService.databaseHandle.QueryRow(query, taskId)
-
-	var temp uint64
-	err := sqlRow.Scan(&temp)
-	if err == sql.ErrNoRows {
-		return false, nil
-	} else if err != nil {
-		return false, teamserver.NewServerError(err.Error())
-	}
-
-	return true, nil
-}
 
 func (agentService *AgentService) GetAgentTaskProgress(agentId uint64) (uint64, error) {
 	query := "SELECT TaskProgress FROM Agents WHERE AgentId = ?"
@@ -183,6 +173,23 @@ func (agentService *AgentService) UpdateAgentTaskProgress(agentId uint64) error 
 	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM TaskQueue)"
 	_, err := agentService.databaseHandle.Exec(query)
 	return err
+}
+
+*/
+
+/*func (taskQueueService *TaskQueueService) TaskExists(taskId uint64) (bool, error) {
+	query := "SELECT TaskId FROM TaskQueue WHERE TaskId = ?"
+	sqlRow := taskQueueService.databaseHandle.QueryRow(query, taskId)
+
+	var temp uint64
+	err := sqlRow.Scan(&temp)
+	if err == sql.ErrNoRows {
+		return false, nil
+	} else if err != nil {
+		return false, teamserver.NewServerError(err.Error())
+	}
+
+	return true, nil
 }
 
 func (taskQueueService *TaskQueueService) GetTasks(agentId uint64) ([]teamserver.Task, error) {
@@ -213,8 +220,9 @@ func (taskQueueService *TaskQueueService) TaskQueuePush(task string) error {
 	query := "INSERT INTO TaskQueue VALUES(NULL, ?)"
 	_, err := taskQueueService.databaseHandle.Exec(query, task)
 	return teamserver.NewServerError(err.Error())
-}
+}*/
 
+/*
 func (taskResultsService *TaskResultsService) SaveTaskResults(agentId uint64, taskResults []teamserver.TaskResultIn) error {
 	exists, err := taskResultsService.agentService.AgentExists(agentId)
 	if err != nil {
@@ -307,7 +315,7 @@ func (taskResultsService *TaskResultsService) GetTaskResults(agentId uint64) ([]
 	}
 
 	return taskResults, nil
-}
+}*/
 
 /*
 func (sqliteDb *SQLiteDatabase) TaskQueuePop() error {

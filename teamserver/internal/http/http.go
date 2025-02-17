@@ -5,18 +5,16 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/sentientbottleofwine/osmium/teamserver"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
 )
 
 type Server struct {
-	mux    *http.ServeMux
-	server *http.Server
-	teamserver.AgentService
-	teamserver.TaskQueueService
-	teamserver.TaskResultsService
+	mux      *http.ServeMux
+	server   *http.Server
+	Database database.Database
 }
 
-func NewServer(port int) *Server {
+func NewServer(port int, db *database.Database) *Server {
 	mux := http.NewServeMux()
 	server := Server{
 		mux: mux,
@@ -24,6 +22,7 @@ func NewServer(port int) *Server {
 			Addr:    ":" + strconv.Itoa(port),
 			Handler: mux,
 		},
+		Database: *db,
 	}
 
 	server.registerHandlers()
