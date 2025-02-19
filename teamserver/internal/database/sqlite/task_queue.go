@@ -5,9 +5,9 @@ import (
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
-func (taskQueueService *TaskQueueService) TaskExists(taskId uint64) (bool, error) {
+func (tqr *TaskQueueRepository) TaskExists(taskId uint64) (bool, error) {
 	query := "SELECT TaskId FROM TaskQueue WHERE TaskId = ?"
-	sqlRow := taskQueueService.databaseHandle.QueryRow(query, taskId)
+	sqlRow := tqr.databaseHandle.QueryRow(query, taskId)
 
 	var temp uint64
 	err := sqlRow.Scan(&temp)
@@ -20,14 +20,9 @@ func (taskQueueService *TaskQueueService) TaskExists(taskId uint64) (bool, error
 	return true, nil
 }
 
-func (taskQueueService *TaskQueueService) GetTasks(agentId uint64) ([]teamserver.Task, error) {
-	taskProgress, err := taskQueueService.agentService.GetAgentTaskProgress(agentId)
-	if err != nil {
-		return nil, err // GetAgentTaskProgress returns the custom error type already
-	}
-
+func (tqr *TaskQueueRepository) GetTasks(agentId uint64, taskProgress uint64) ([]teamserver.Task, error) {
 	query := "SELECT TaskId, Task FROM TaskQueue WHERE TaskId >= ?"
-	tasksSqlRows, err := taskQueueService.databaseHandle.Query(query, taskProgress)
+	tasksSqlRows, err := tqr.databaseHandle.Query(query, taskProgress)
 	if err != nil {
 		return nil, teamserver.NewServerError(err.Error())
 	}
@@ -44,8 +39,8 @@ func (taskQueueService *TaskQueueService) GetTasks(agentId uint64) ([]teamserver
 	return tasks, nil
 }
 
-func (taskQueueService *TaskQueueService) TaskQueuePush(task string) error {
+func (tqr *TaskQueueRepository) TaskQueuePush(task string) error {
 	query := "INSERT INTO TaskQueue VALUES(NULL, ?)"
-	_, err := taskQueueService.databaseHandle.Exec(query, task)
+	_, err := tqr.databaseHandle.Exec(query, task)
 	return teamserver.NewServerError(err.Error())
 }

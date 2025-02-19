@@ -1,41 +1,25 @@
 package sqlite
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
-func (taskResultsService *TaskResultsService) SaveTaskResults(agentId uint64, taskResults []teamserver.TaskResultIn) error {
-	exists, err := taskResultsService.agentService.AgentExists(agentId)
-	if err != nil {
-		return err
-	} else if !exists {
-		return teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
-	}
-
+func (trr *TaskResultsRepository) SaveTaskResults(agentId uint64, taskResults []teamserver.TaskResultIn) error {
 	var queryBuilder strings.Builder
 	queryBuilder.WriteString("INSERT INTO TaskResults (AgentId, TaskId, Output) VALUES")
 	values := []interface{}{}
 
 	for _, taskResults := range taskResults {
 		queryBuilder.WriteString("(?, ?, ?),")
-
-		exists, err := taskResultsService.taskQueueService.TaskExists(taskResults.TaskId)
-		if err != nil {
-			return err
-		} else if !exists {
-			return teamserver.NewClientError(fmt.Sprintf(errTaskIdNotFoundFmt, taskResults.TaskId))
-		}
-
 		values = append(values, agentId, taskResults.TaskId, taskResults.Output)
 	}
 
 	query := queryBuilder.String()
 	query = strings.TrimSuffix(query, ",")
 
-	stmt, err := taskResultsService.databaseHandle.Prepare(query)
+	stmt, err := trr.databaseHandle.Prepare(query)
 	if err != nil {
 		return teamserver.NewServerError(err.Error())
 	}
@@ -44,28 +28,15 @@ func (taskResultsService *TaskResultsService) SaveTaskResults(agentId uint64, ta
 	if err != nil {
 		return teamserver.NewServerError(err.Error())
 	}
+
 	return err
 }
 
-func (taskResultsService *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error) {
-	exists, err := taskResultsService.agentService.AgentExists(agentId)
-	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
-	} else if !exists {
-		return nil, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
-	}
-
-	exists, err = taskResultsService.taskQueueService.TaskExists(taskId)
-	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
-	} else if !exists {
-		return nil, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, taskId))
-	}
-
+func (trr *TaskResultsRepository) GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error) {
 	query := "SELECT Task, Output FROM TaskResults INNER JOIN TaskQueue ON TaskResults.TaskId = TaskQueue.TaskId WHERE agentId = ? AND taskId = ?"
-	taskResultsSqlRow := taskResultsService.databaseHandle.QueryRow(query)
+	taskResultsSqlRow := trr.databaseHandle.QueryRow(query)
 	taskResult := teamserver.TaskResultOut{}
-	err = taskResultsSqlRow.Scan(&taskResult.TaskId, &taskResult.Task, &taskResult.Output)
+	err := taskResultsSqlRow.Scan(&taskResult.TaskId, &taskResult.Task, &taskResult.Output)
 	if err != nil {
 		return nil, teamserver.NewServerError(err.Error())
 	}
@@ -73,16 +44,9 @@ func (taskResultsService *TaskResultsService) GetTaskResult(agentId uint64, task
 	return &taskResult, nil
 }
 
-func (taskResultsService *TaskResultsService) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
-	exists, err := taskResultsService.agentService.AgentExists(agentId)
-	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
-	} else if !exists {
-		return nil, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
-	}
-
+func (trr *TaskResultsRepository) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
 	query := "SELECT TaskResults.TaskId, Task, Output FROM TaskResults INNER JOIN TaskQueue ON TaskResults.TaskId = TaskQueue.TaskId WHERE agentId = ?"
-	taskResultsSqlRows, err := taskResultsService.databaseHandle.Query(query, agentId)
+	taskResultsSqlRows, err := trr.databaseHandle.Query(query, agentId)
 	if err != nil {
 		return nil, teamserver.NewServerError(err.Error())
 	}

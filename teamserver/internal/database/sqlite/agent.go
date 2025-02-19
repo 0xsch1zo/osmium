@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"crypto/rsa"
 	"database/sql"
 	"fmt"
 
@@ -8,21 +9,16 @@ import (
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
 )
 
-func (agentService *AgentService) AddAgent() (*teamserver.Agent, error) {
-	rsaPriv, err := tools.GenerateKey()
-	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
-	}
-
+func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error) {
 	query := "INSERT INTO Agents (AgentId, TaskProgress, PrivateKey) values(NULL, 0, ?);"
-	_, err = agentService.databaseHandle.Exec(query, tools.PrivRsaToPem(rsaPriv))
+	_, err := ar.databaseHandle.Exec(query, tools.PrivRsaToPem(rsaPriv))
 	if err != nil {
 		return nil, teamserver.NewServerError(err.Error())
 	}
 
 	// Get last row in db to get the AgentId of the newly created Agent
 	query = "SELECT AgentId FROM Agents ORDER BY AgentId DESC LIMIT 1;" // in sqlite integer primary key will autoicrement as long as null is passed in
-	AgentIdSqlRow := agentService.databaseHandle.QueryRow(query)
+	AgentIdSqlRow := ar.databaseHandle.QueryRow(query)
 
 	var AgentId uint64
 	err = AgentIdSqlRow.Scan(&AgentId)
@@ -36,9 +32,9 @@ func (agentService *AgentService) AddAgent() (*teamserver.Agent, error) {
 	}, nil
 }
 
-func (agentService *AgentService) GetAgent(agentId uint64) (*teamserver.Agent, error) {
+func (ar *AgentRepository) GetAgent(agentId uint64) (*teamserver.Agent, error) {
 	query := "SELECT AgentId, TaskProgress, PrivateKey FROM Agents WHERE AgentId = ?"
-	AgentSqlRow := agentService.databaseHandle.QueryRow(query, agentId)
+	AgentSqlRow := ar.databaseHandle.QueryRow(query, agentId)
 
 	var agent teamserver.Agent
 	var agentPrivateKeyPem string
@@ -56,9 +52,9 @@ func (agentService *AgentService) GetAgent(agentId uint64) (*teamserver.Agent, e
 	return &agent, nil
 }
 
-func (agentService *AgentService) AgentExists(agentId uint64) (bool, error) {
+func (ar *AgentRepository) AgentExists(agentId uint64) (bool, error) {
 	query := "SELECT AgentId FROM Agents WHERE AgentId = ?"
-	sqlRow := agentService.databaseHandle.QueryRow(query, agentId)
+	sqlRow := ar.databaseHandle.QueryRow(query, agentId)
 
 	var temp uint64
 	err := sqlRow.Scan(&temp)
@@ -71,9 +67,9 @@ func (agentService *AgentService) AgentExists(agentId uint64) (bool, error) {
 	return true, nil
 }
 
-func (agentService *AgentService) GetAgentTaskProgress(agentId uint64) (uint64, error) {
+func (ar *AgentRepository) GetAgentTaskProgress(agentId uint64) (uint64, error) {
 	query := "SELECT TaskProgress FROM Agents WHERE AgentId = ?"
-	AgentSqlRow := agentService.databaseHandle.QueryRow(query, agentId)
+	AgentSqlRow := ar.databaseHandle.QueryRow(query, agentId)
 	var taskProgress uint64
 	err := AgentSqlRow.Scan(&taskProgress)
 	if err == sql.ErrNoRows {
@@ -86,8 +82,8 @@ func (agentService *AgentService) GetAgentTaskProgress(agentId uint64) (uint64, 
 }
 
 // TODO: Fix this shit
-func (agentService *AgentService) UpdateAgentTaskProgress(agentId uint64) error {
+func (ar *AgentRepository) UpdateAgentTaskProgress(agentId uint64) error {
 	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM TaskQueue)"
-	_, err := agentService.databaseHandle.Exec(query)
+	_, err := ar.databaseHandle.Exec(query)
 	return err
 }

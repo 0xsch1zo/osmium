@@ -54,7 +54,7 @@ func NewServerError(err string) *ServerError {
 	}
 }
 
-type AgentService interface {
+type AgentRepository interface {
 	AddAgent() (*Agent, error)
 	GetAgent(agentId uint64) (*Agent, error)
 	GetAgentTaskProgress(agentId uint64) (uint64, error)
@@ -62,14 +62,14 @@ type AgentService interface {
 	AgentExists(agentId uint64) (bool, error)
 }
 
-type TaskQueueService interface {
+type TaskQueueRepository interface {
 	TaskQueuePush(task string) error
 	GetTasks(agentId uint64) ([]Task, error)
 	TaskExists(taskId uint64) (bool, error)
 }
 
 // TOOO: Figure out how to translate api model to domain model when they're not one to one
-type TaskResultsService interface {
+type TaskResultsRepository interface {
 	SaveTaskResults(agentId uint64, taskResults []TaskResultIn) error
 	GetTaskResult(agentId uint64, taskId uint64) (*TaskResultOut, error)
 	GetTaskResults(agentId uint64) ([]TaskResultOut, error)
