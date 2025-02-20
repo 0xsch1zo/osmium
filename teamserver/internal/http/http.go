@@ -5,7 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
+	//"github.com/a-h/templ"
+	//"github.com/sentientbottleofwine/osmium/teamserver/api"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
+	//"github.com/sentientbottleofwine/osmium/teamserver/internal/ui/templates"
 	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
 
@@ -16,6 +19,8 @@ type Server struct {
 	TaskQueueService   *service.TaskQueueService
 	TaskResultsService *service.TaskResultsService
 }
+
+//var counter uint64
 
 func NewServer(port int, db *database.Database) *Server {
 	mux := http.NewServeMux()
@@ -46,6 +51,22 @@ func (server *Server) registerHandlers() {
 	server.mux.HandleFunc("GET /agents/{id}/tasks", server.GetTasks)
 	server.mux.HandleFunc("POST /agents/{id}/results", server.SaveTaskResults)
 	server.mux.HandleFunc("GET /agents/{id}/results", server.GetTaskResults)
+
+	/*server.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		component := templates.Hello(counter)
+		err := component.Render(r.Context(), w)
+		if err != nil {
+			api.InternalErrorHandler(w)
+		}
+	})
+	server.mux.HandleFunc("POST /count", func(w http.ResponseWriter, r *http.Request) {
+		counter++
+		component := templates.Hello(counter)
+		err := component.Render(r.Context(), w)
+		if err != nil {
+			api.InternalErrorHandler(w)
+		}
+	})*/
 }
 
 func (server *Server) ListenAndServe() {

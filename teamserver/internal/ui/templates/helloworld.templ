@@ -1,0 +1,10 @@
+package templates
+
+import "strconv"
+
+templ Hello(count uint64) {
+<h1>hello world{ strconv.FormatUint(count, 10) }</h1>
+<button hx-post="/count">
+    button
+</button>
+}
