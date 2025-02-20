@@ -2,12 +2,25 @@ package service
 
 import (
 	"crypto/rsa"
+	"errors"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
-const errAgentIdNotFoundFmt = "AgentId not found: %d"
-const errTaskIdNotFoundFmt = "TaskId not found: %d"
+const ErrAgentIdNotFoundFmt = "AgentId not found: %d"
+const ErrTaskIdNotFoundFmt = "TaskId not found: %d"
+
+type RepositoryErrNotFound struct {
+	Err string
+}
+
+func (serr *RepositoryErrNotFound) Error() string {
+	return serr.Err
+}
+
+func NewRepositoryErrNotFound(err string) *RepositoryErrNotFound {
+	return &RepositoryErrNotFound{Err: err}
+}
 
 type AgentRepository interface {
 	AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error)
@@ -68,4 +81,13 @@ func NewTaskResultsService(
 		taskQueueService:      NewTaskQueueService(taskQueueRepository, agentRepository),
 		taskResultsRepository: taskResultsRepository,
 	}
+}
+
+func repositoryErrWrapper(err error) error {
+	target := &RepositoryErrNotFound{}
+	if errors.As(err, &target) {
+		return teamserver.NewClientError(err.Error())
+	}
+
+	return teamserver.NewServerError(err.Error())
 }

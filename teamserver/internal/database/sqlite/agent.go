@@ -7,13 +7,14 @@ import (
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
+	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
 
 func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error) {
 	query := "INSERT INTO Agents (AgentId, TaskProgress, PrivateKey) values(NULL, 0, ?);"
 	_, err := ar.databaseHandle.Exec(query, tools.PrivRsaToPem(rsaPriv))
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	}
 
 	// Get last row in db to get the AgentId of the newly created Agent
@@ -23,7 +24,7 @@ func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent,
 	var AgentId uint64
 	err = AgentIdSqlRow.Scan(&AgentId)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	}
 
 	return &teamserver.Agent{
@@ -40,14 +41,14 @@ func (ar *AgentRepository) GetAgent(agentId uint64) (*teamserver.Agent, error) {
 	var agentPrivateKeyPem string
 	err := AgentSqlRow.Scan(&agent.AgentId, &agent.TaskProgress, &agentPrivateKeyPem)
 	if err == sql.ErrNoRows {
-		return nil, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
+		return nil, service.NewRepositoryErrNotFound(fmt.Sprintf(service.ErrAgentIdNotFoundFmt, agentId))
 	} else if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	}
 
 	agent.PrivateKey, err = tools.PemToPrivRsa(agentPrivateKeyPem)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	}
 	return &agent, nil
 }
@@ -61,7 +62,7 @@ func (ar *AgentRepository) AgentExists(agentId uint64) (bool, error) {
 	if err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {
-		return false, teamserver.NewServerError(err.Error())
+		return false, err
 	}
 
 	return true, nil
@@ -73,9 +74,9 @@ func (ar *AgentRepository) GetAgentTaskProgress(agentId uint64) (uint64, error) 
 	var taskProgress uint64
 	err := AgentSqlRow.Scan(&taskProgress)
 	if err == sql.ErrNoRows {
-		return 0, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
+		return 0, service.NewRepositoryErrNotFound(fmt.Sprintf(service.ErrAgentIdNotFoundFmt, agentId))
 	} else if err != nil {
-		return 0, teamserver.NewServerError(err.Error())
+		return 0, err
 	}
 
 	return taskProgress, nil

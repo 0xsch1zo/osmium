@@ -21,14 +21,10 @@ func (trr *TaskResultsRepository) SaveTaskResults(agentId uint64, taskResults []
 
 	stmt, err := trr.databaseHandle.Prepare(query)
 	if err != nil {
-		return teamserver.NewServerError(err.Error())
+		return err
 	}
 
 	_, err = stmt.Exec(values...)
-	if err != nil {
-		return teamserver.NewServerError(err.Error())
-	}
-
 	return err
 }
 
@@ -38,7 +34,7 @@ func (trr *TaskResultsRepository) GetTaskResult(agentId uint64, taskId uint64) (
 	taskResult := teamserver.TaskResultOut{}
 	err := taskResultsSqlRow.Scan(&taskResult.TaskId, &taskResult.Task, &taskResult.Output)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	}
 
 	return &taskResult, nil
@@ -48,7 +44,7 @@ func (trr *TaskResultsRepository) GetTaskResults(agentId uint64) ([]teamserver.T
 	query := "SELECT TaskResults.TaskId, Task, Output FROM TaskResults INNER JOIN TaskQueue ON TaskResults.TaskId = TaskQueue.TaskId WHERE agentId = ?"
 	taskResultsSqlRows, err := trr.databaseHandle.Query(query, agentId)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	}
 
 	taskResults := []teamserver.TaskResultOut{}
@@ -56,7 +52,7 @@ func (trr *TaskResultsRepository) GetTaskResults(agentId uint64) ([]teamserver.T
 		taskResult := teamserver.TaskResultOut{}
 		err := taskResultsSqlRows.Scan(&taskResult.TaskId, &taskResult.Task, &taskResult.Output)
 		if err != nil {
-			return nil, teamserver.NewServerError(err.Error())
+			return nil, err
 		}
 
 		taskResults = append(taskResults, taskResult)

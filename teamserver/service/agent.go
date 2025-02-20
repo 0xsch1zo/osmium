@@ -13,24 +13,27 @@ func (as *AgentService) AddAgent() (*teamserver.Agent, error) {
 
 	agent, err := as.agentRepository.AddAgent(rsaPriv)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, repositoryErrWrapper(err)
 	}
 
 	return agent, nil
 }
 
 func (as *AgentService) getAgent(agentId uint64) (*teamserver.Agent, error) {
-	return as.agentRepository.GetAgent(agentId)
+	agent, err := as.agentRepository.GetAgent(agentId)
+	return agent, repositoryErrWrapper(err)
 }
 
 func (as *AgentService) agentExists(agentId uint64) (bool, error) {
-	return as.agentRepository.AgentExists(agentId)
+	exists, err := as.agentRepository.AgentExists(agentId)
+	return exists, err
 }
 
 func (as *AgentService) getAgentTaskProgress(agentId uint64) (uint64, error) {
-	return as.agentRepository.GetAgentTaskProgress(agentId)
+	taskProgress, err := as.agentRepository.GetAgentTaskProgress(agentId)
+	return taskProgress, repositoryErrWrapper(err)
 }
 
 func (as *AgentService) updateAgentTaskProgress(agentId uint64) error {
-	return as.agentRepository.UpdateAgentTaskProgress(agentId)
+	return repositoryErrWrapper(as.agentRepository.UpdateAgentTaskProgress(agentId))
 }

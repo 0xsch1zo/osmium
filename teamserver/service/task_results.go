@@ -10,7 +10,7 @@ func (trs *TaskResultsService) validTaskResults(taskResults []teamserver.TaskRes
 	for _, taskResult := range taskResults {
 		exists, err := trs.taskQueueService.taskQueueRepository.TaskExists(taskResult.TaskId)
 		if err != nil {
-			return false, err
+			return false, repositoryErrWrapper(err)
 		} else if !exists {
 			return false, nil
 		}
@@ -24,19 +24,19 @@ func (trs *TaskResultsService) SaveTaskResults(agentId uint64, taskResults []tea
 	if err != nil {
 		return err
 	} else if !valid {
-		return teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
+		return teamserver.NewClientError(fmt.Sprintf(ErrAgentIdNotFoundFmt, agentId))
 	}
 
 	valid, err = trs.validTaskResults(taskResults)
 	if err != nil {
 		return err
 	} else if !valid {
-		return teamserver.NewClientError("Task not found.")
+		return teamserver.NewClientError(ErrTaskIdNotFoundFmt)
 	}
 
 	err = trs.taskResultsRepository.SaveTaskResults(agentId, taskResults)
 	if err != nil {
-		return err
+		return repositoryErrWrapper(err)
 	}
 
 	return nil
@@ -47,19 +47,19 @@ func (trs *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*te
 	if err != nil {
 		return nil, teamserver.NewServerError(err.Error())
 	} else if !exists {
-		return nil, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
+		return nil, teamserver.NewClientError(fmt.Sprintf(ErrAgentIdNotFoundFmt, agentId))
 	}
 
 	exists, err = trs.taskQueueService.taskExists(taskId)
 	if err != nil {
 		return nil, teamserver.NewServerError(err.Error())
 	} else if !exists {
-		return nil, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, taskId))
+		return nil, teamserver.NewClientError(fmt.Sprintf(ErrTaskIdNotFoundFmt, taskId))
 	}
 
 	taskResult, err := trs.taskResultsRepository.GetTaskResult(agentId, taskId)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, repositoryErrWrapper(err)
 	}
 
 	return taskResult, nil
@@ -70,12 +70,12 @@ func (trs *TaskResultsService) GetTaskResults(agentId uint64) ([]teamserver.Task
 	if err != nil {
 		return nil, teamserver.NewServerError(err.Error())
 	} else if !exists {
-		return nil, teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
+		return nil, teamserver.NewClientError(fmt.Sprintf(ErrAgentIdNotFoundFmt, agentId))
 	}
 
 	taskResltuts, err := trs.taskResultsRepository.GetTaskResults(agentId)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, repositoryErrWrapper(err)
 	}
 
 	return taskResltuts, nil

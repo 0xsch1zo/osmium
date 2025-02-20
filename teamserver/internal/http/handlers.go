@@ -48,7 +48,7 @@ func (server *Server) Register(w http.ResponseWriter, r *http.Request) {
 func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		ApiErrorHandler(err, w)
+		api.RequestErrorHandler(w, err) // Clients error
 		log.Print(err)
 		return
 	}
@@ -74,7 +74,7 @@ func (server *Server) PushTask(w http.ResponseWriter, r *http.Request) {
 	var pushTasksReq api.PushTaskRequest
 	err := json.NewDecoder(r.Body).Decode(&pushTasksReq)
 	if err != nil {
-		ApiErrorHandler(err, w)
+		api.RequestErrorHandler(w, err)
 		log.Printf("Bad request for task: %v", err)
 		return
 	}
@@ -91,14 +91,14 @@ func (server *Server) SaveTaskResults(w http.ResponseWriter, r *http.Request) {
 	var taskResults api.PostTaskResultsRequest
 	err := json.NewDecoder(r.Body).Decode(&taskResults)
 	if err != nil {
-		ApiErrorHandler(err, w)
+		api.RequestErrorHandler(w, err)
 		log.Printf("Bad request: %v", err)
 		return
 	}
 
 	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		ApiErrorHandler(err, w)
+		api.RequestErrorHandler(w, err)
 		log.Printf("%v", err)
 		return
 	}
@@ -114,7 +114,7 @@ func (server *Server) SaveTaskResults(w http.ResponseWriter, r *http.Request) {
 func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
 	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		ApiErrorHandler(err, w)
+		api.RequestErrorHandler(w, err)
 		log.Printf("%v", err)
 		return
 	}

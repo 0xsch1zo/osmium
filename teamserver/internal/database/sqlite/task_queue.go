@@ -14,7 +14,7 @@ func (tqr *TaskQueueRepository) TaskExists(taskId uint64) (bool, error) {
 	if err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {
-		return false, teamserver.NewServerError(err.Error())
+		return false, err
 	}
 
 	return true, nil
@@ -24,7 +24,7 @@ func (tqr *TaskQueueRepository) GetTasks(agentId uint64, taskProgress uint64) ([
 	query := "SELECT TaskId, Task FROM TaskQueue WHERE TaskId >= ?"
 	tasksSqlRows, err := tqr.databaseHandle.Query(query, taskProgress)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	}
 
 	var tasks []teamserver.Task
@@ -32,7 +32,7 @@ func (tqr *TaskQueueRepository) GetTasks(agentId uint64, taskProgress uint64) ([
 		tasks = append(tasks, teamserver.Task{})
 		err = tasksSqlRows.Scan(&(tasks[len(tasks)-1].TaskId), &(tasks[len(tasks)-1].Task))
 		if err != nil {
-			return nil, teamserver.NewServerError(err.Error())
+			return nil, err
 		}
 	}
 
@@ -42,5 +42,5 @@ func (tqr *TaskQueueRepository) GetTasks(agentId uint64, taskProgress uint64) ([
 func (tqr *TaskQueueRepository) TaskQueuePush(task string) error {
 	query := "INSERT INTO TaskQueue VALUES(NULL, ?)"
 	_, err := tqr.databaseHandle.Exec(query, task)
-	return teamserver.NewServerError(err.Error())
+	return err
 }

@@ -7,9 +7,6 @@ import (
 	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
 
-const errAgentIdNotFoundFmt = "AgentId not found: %d"
-const errTaskIdNotFoundFmt = "TaskId not found: %d"
-
 type Sqlite struct {
 	databaseHandle *sql.DB
 }
