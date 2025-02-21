@@ -37,3 +37,11 @@ func (as *AgentService) getAgentTaskProgress(agentId uint64) (uint64, error) {
 func (as *AgentService) updateAgentTaskProgress(agentId uint64) error {
 	return repositoryErrWrapper(as.agentRepository.UpdateAgentTaskProgress(agentId))
 }
+
+func (as *AgentService) ListAgents() ([]teamserver.AgentView, error) {
+	agentViews, err := as.agentRepository.ListAgents()
+	if err != nil {
+		return nil, repositoryErrWrapper(err)
+	}
+	return agentViews, nil
+}

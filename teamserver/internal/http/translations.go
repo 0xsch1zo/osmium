@@ -51,3 +51,13 @@ func TaskResultsOutToGetTaskResultsResponse(taskResultsOut []teamserver.TaskResu
 
 	return &taskResultsResponse
 }
+
+func AgentViewsToListAgentsResponse(agentViews []teamserver.AgentView) *api.ListAgentsResponse {
+	var listAgentsResponse api.ListAgentsResponse
+
+	for _, agentView := range agentViews {
+		listAgentsResponse.AgentViews = append(listAgentsResponse.AgentViews, agentView)
+	}
+
+	return &listAgentsResponse
+}

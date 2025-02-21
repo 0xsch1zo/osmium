@@ -25,6 +25,7 @@ func NewRepositoryErrNotFound(err string) *RepositoryErrNotFound {
 type AgentRepository interface {
 	AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error)
 	GetAgent(agentId uint64) (*teamserver.Agent, error)
+	ListAgents() ([]teamserver.AgentView, error)
 	GetAgentTaskProgress(agentId uint64) (uint64, error)
 	UpdateAgentTaskProgress(agentId uint64) error
 	AgentExists(agentId uint64) (bool, error)
@@ -84,6 +85,10 @@ func NewTaskResultsService(
 }
 
 func repositoryErrWrapper(err error) error {
+	if err == nil {
+		return nil
+	}
+
 	target := &RepositoryErrNotFound{}
 	if errors.As(err, &target) {
 		return teamserver.NewClientError(err.Error())

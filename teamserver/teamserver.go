@@ -10,6 +10,11 @@ type Agent struct {
 	PrivateKey   *rsa.PrivateKey
 }
 
+type AgentView struct {
+	AgentId uint64
+	Task    string
+}
+
 type Task struct {
 	TaskId uint64
 	Task   string

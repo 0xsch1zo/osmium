@@ -11,7 +11,7 @@ import (
 )
 
 func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error) {
-	query := "INSERT INTO Agents (AgentId, TaskProgress, PrivateKey) values(NULL, 0, ?);"
+	query := "INSERT INTO Agents (AgentId, TaskProgress, PrivateKey) values(NULL, 1, ?);"
 	_, err := ar.databaseHandle.Exec(query, tools.PrivRsaToPem(rsaPriv))
 	if err != nil {
 		return nil, err
@@ -87,4 +87,24 @@ func (ar *AgentRepository) UpdateAgentTaskProgress(agentId uint64) error {
 	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM TaskQueue)"
 	_, err := ar.databaseHandle.Exec(query)
 	return err
+}
+
+func (ar *AgentRepository) ListAgents() ([]teamserver.AgentView, error) {
+	query := "SELECT AgentId, Task FROM Agents INNER JOIN TaskQueue ON Agents.TaskProgress = TaskQueue.TaskId"
+	sqlRow, err := ar.databaseHandle.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var AgentViews []teamserver.AgentView
+	for sqlRow.Next() {
+		var agent teamserver.AgentView
+		err = sqlRow.Scan(&agent.AgentId, &agent.Task)
+		if err != nil {
+			return nil, err
+		}
+		AgentViews = append(AgentViews, agent)
+	}
+
+	return AgentViews, nil
 }

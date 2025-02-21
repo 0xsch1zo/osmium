@@ -40,6 +40,13 @@ type GetTaskResultsResponse struct {
 	}
 }
 
+type ListAgentsResponse struct {
+	AgentViews []struct {
+		AgentId uint64
+		Task    string
+	}
+}
+
 type Error struct {
 	Code    int
 	Message string
