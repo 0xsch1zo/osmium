@@ -1,4 +1,19 @@
 package templates
 
-templ fu() {
+import "github.com/sentientbottleofwine/osmium/teamserver"
+import "strconv"
+
+templ AgentsView(agents []teamserver.AgentView) {
+<table>
+    <tr>
+        <th>Agent Id</th>
+        <th>Current Task</th>
+    </tr>
+    for _, agent := range agents {
+    <tr>
+        <td>{ strconv.FormatUint(agent.AgentId, 10) }</td>
+        <td>{ agent.Task }</td>
+    </tr>
+    }
+</table>
 }

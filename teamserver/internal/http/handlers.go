@@ -136,21 +136,3 @@ func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
-func (server *Server) ListAgents(w http.ResponseWriter, r *http.Request) {
-	agentViews, err := server.AgentService.ListAgents()
-	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("%v", err)
-		return
-	}
-
-	resp := AgentViewsToListAgentsResponse(agentViews)
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(resp)
-	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to serialize response with: %v", err)
-		return
-	}
-}

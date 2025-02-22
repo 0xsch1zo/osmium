@@ -1,0 +1,37 @@
+package templates
+
+templ Index(agentsView templ.Component) {
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <script src="/static/htmx.min.js"></script>
+</head>
+
+<body>
+    <div id="Agents">
+        @agentsView
+    </div>
+    <div id="TaskList"></div>
+    <div id="Shell"></div>
+</body>
+
+</html>
+}
+
+templ ErrorPage(err string) {
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <script src="/static/htmx.min.js"></script>
+</head>
+
+<body>
+    <div>
+        <h1 color="red">An unexpected error occured: { err }</h1>
+    </div>
+</body>
+
+</html>
+}
