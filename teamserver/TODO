@@ -1,5 +1,3 @@
-handlers.go looks like shit
-log errors in error handler
 check for uniqueness in such way to return client error
 WRITE THE FUCKING UNIT TESTS
 proper struct validation

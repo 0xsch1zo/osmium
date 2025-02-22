@@ -11,8 +11,8 @@ type Database interface {
 	NewTaskResultsRepository() *service.TaskResultsRepository
 }
 
-func NewDatabase() (*Database, error) {
+func NewDatabase(sourceString string) (*Database, error) {
 	var db Database
-	db, err := sqlite.SetupDatabase()
+	db, err := sqlite.SetupDatabase(sourceString)
 	return &db, err
 }

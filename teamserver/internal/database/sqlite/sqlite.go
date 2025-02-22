@@ -45,8 +45,8 @@ func (s *Sqlite) NewTaskResultsRepository() *service.TaskResultsRepository {
 }
 
 // Shitty code use migrations or something
-func SetupDatabase() (*Sqlite, error) {
-	databaseHandle, err := sql.Open("sqlite3", "teamserver.db")
+func SetupDatabase(sourceString string) (*Sqlite, error) {
+	databaseHandle, err := sql.Open("sqlite3", sourceString)
 	if err != nil {
 		return nil, err
 	}

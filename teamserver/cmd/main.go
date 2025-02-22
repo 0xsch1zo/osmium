@@ -51,7 +51,7 @@ func main() {
 		}
 	}
 
-	db, err := database.NewDatabase()
+	db, err := database.NewDatabase("teamserver.db")
 	if err != nil {
 		log.Fatal(err)
 	}
