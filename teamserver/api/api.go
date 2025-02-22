@@ -17,6 +17,10 @@ type GetTasksResponse struct {
 	}
 }
 
+type GetTaskQueueResponse struct {
+	Tasks []string
+}
+
 type PushTaskRequest struct {
 	Task string
 }

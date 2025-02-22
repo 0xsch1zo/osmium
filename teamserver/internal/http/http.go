@@ -45,6 +45,7 @@ func (server *Server) registerHandlers() {
 	server.mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	server.mux.HandleFunc("POST /register", server.Register)
 	server.mux.HandleFunc("POST /taskQueue", server.PushTask)
+	server.mux.HandleFunc("GET /taskQueue", server.GetTaskQueue)
 	server.mux.HandleFunc("GET /agents/{id}/tasks", server.GetTasks)
 	server.mux.HandleFunc("POST /agents/{id}/results", server.SaveTaskResults)
 	server.mux.HandleFunc("GET /agents/{id}/results", server.GetTaskResults)

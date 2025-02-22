@@ -34,6 +34,7 @@ type AgentRepository interface {
 
 type TaskQueueRepository interface {
 	TaskQueuePush(task string) error
+	GetTaskQueue() ([]string, error)
 	TaskExists(taskId uint64) (bool, error)
 }
 
