@@ -70,24 +70,6 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (server *Server) GetTaskQueue(w http.ResponseWriter, r *http.Request) {
-	taskQueue, err := server.TaskQueueService.GetTaskQueue()
-	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("%v", err)
-		return
-	}
-
-	resp := api.GetTaskQueueResponse{Tasks: taskQueue}
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(resp)
-	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to serialize register response with: %v", err)
-		return
-	}
-}
-
 func (server *Server) PushTask(w http.ResponseWriter, r *http.Request) {
 	var pushTasksReq api.PushTaskRequest
 	err := json.NewDecoder(r.Body).Decode(&pushTasksReq)

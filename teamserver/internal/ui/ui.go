@@ -36,7 +36,12 @@ func (ui *Ui) RootHandler(w http.ResponseWriter, r *http.Request) {
 		UiErrorHandler(w, r, err.Error())
 	}
 
-	homePage := templates.Index(agentsView)
+	taskQueueView, err := ui.taskQueueContainer()
+	if err != nil {
+		UiErrorHandler(w, r, err.Error())
+	}
+
+	homePage := templates.Index(agentsView, taskQueueView)
 	err = homePage.Render(r.Context(), w)
 	if err != nil {
 		UiErrorHandler(w, r, err.Error())
@@ -44,10 +49,19 @@ func (ui *Ui) RootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ui *Ui) agentsContainer() (templ.Component, error) {
-	agentViews, err := ui.agentService.ListAgents()
+	agents, err := ui.agentService.ListAgents()
 	if err != nil {
 		return nil, err
 	}
 
-	return templates.AgentsView(agentViews), nil
+	return templates.AgentsView(agents), nil
+}
+
+func (ui *Ui) taskQueueContainer() (templ.Component, error) {
+	taskQueue, err := ui.taskQueueService.GetTaskQueue()
+	if err != nil {
+		return nil, err
+	}
+
+	return templates.TaskQueueView(taskQueue), nil
 }

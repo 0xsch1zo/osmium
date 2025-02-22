@@ -1,8 +1,15 @@
 package templates
-/*
-import (
-"github.com/sentientbottleofwine/osmium/teamserver/service"
-)
-templ taskQueueView(tsak) {
 
-}*/
+import "strconv"
+
+templ TaskQueueView(taskQueue []string) {
+<h1>Task Queue</h1>
+<table>
+    for i, task := range taskQueue {
+    <tr>
+        <td>{ strconv.Itoa(i + 1) }</td>
+        <td>{ task }</td>
+    </tr>
+    }
+</table>
+}

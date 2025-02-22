@@ -1,6 +1,6 @@
 package templates
 
-templ Index(agentsView templ.Component) {
+templ Index(agentsView templ.Component, taskQueueView templ.Component) {
 <html>
 
 <head>
@@ -12,7 +12,8 @@ templ Index(agentsView templ.Component) {
     <div id="Agents">
         @agentsView
     </div>
-    <div id="TaskList"></div>
+    <div id="TaskQueue"></div>
+    @taskQueueView
     <div id="Shell"></div>
 </body>
 
