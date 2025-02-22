@@ -53,7 +53,7 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := server.TaskQueueService.GetTasks(agentId)
+	tasks, err := server.AgentService.GetTasks(agentId)
 	if err != nil {
 		ApiErrorHandler(err, w)
 		log.Printf("Failed to get tasks for agent: %d - %v", agentId, err)

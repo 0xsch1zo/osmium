@@ -29,11 +29,11 @@ type AgentRepository interface {
 	GetAgentTaskProgress(agentId uint64) (uint64, error)
 	UpdateAgentTaskProgress(agentId uint64) error
 	AgentExists(agentId uint64) (bool, error)
+	GetTasks(agentId uint64, taskProgress uint64) ([]teamserver.Task, error)
 }
 
 type TaskQueueRepository interface {
 	TaskQueuePush(task string) error
-	GetTasks(agentId uint64, taskProgress uint64) ([]teamserver.Task, error)
 	TaskExists(taskId uint64) (bool, error)
 }
 

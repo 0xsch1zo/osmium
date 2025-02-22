@@ -8,9 +8,9 @@ import (
 
 func (trs *TaskResultsService) validTaskResults(taskResults []teamserver.TaskResultIn) (bool, error) {
 	for _, taskResult := range taskResults {
-		exists, err := trs.taskQueueService.taskQueueRepository.TaskExists(taskResult.TaskId)
+		exists, err := trs.taskQueueService.taskExists(taskResult.TaskId)
 		if err != nil {
-			return false, repositoryErrWrapper(err)
+			return false, err
 		} else if !exists {
 			return false, nil
 		}
@@ -45,14 +45,14 @@ func (trs *TaskResultsService) SaveTaskResults(agentId uint64, taskResults []tea
 func (trs *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error) {
 	exists, err := trs.agentService.agentExists(agentId)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	} else if !exists {
 		return nil, teamserver.NewClientError(fmt.Sprintf(ErrAgentIdNotFoundFmt, agentId))
 	}
 
 	exists, err = trs.taskQueueService.taskExists(taskId)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	} else if !exists {
 		return nil, teamserver.NewClientError(fmt.Sprintf(ErrTaskIdNotFoundFmt, taskId))
 	}
@@ -68,7 +68,7 @@ func (trs *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*te
 func (trs *TaskResultsService) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
 	exists, err := trs.agentService.agentExists(agentId)
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		return nil, err
 	} else if !exists {
 		return nil, teamserver.NewClientError(fmt.Sprintf(ErrAgentIdNotFoundFmt, agentId))
 	}

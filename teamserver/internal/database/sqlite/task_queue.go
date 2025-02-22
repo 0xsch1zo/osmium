@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"database/sql"
-	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
 func (tqr *TaskQueueRepository) TaskExists(taskId uint64) (bool, error) {
@@ -18,25 +17,6 @@ func (tqr *TaskQueueRepository) TaskExists(taskId uint64) (bool, error) {
 	}
 
 	return true, nil
-}
-
-func (tqr *TaskQueueRepository) GetTasks(agentId uint64, taskProgress uint64) ([]teamserver.Task, error) {
-	query := "SELECT TaskId, Task FROM TaskQueue WHERE TaskId >= ?"
-	tasksSqlRows, err := tqr.databaseHandle.Query(query, taskProgress)
-	if err != nil {
-		return nil, err
-	}
-
-	var tasks []teamserver.Task
-	for tasksSqlRows.Next() {
-		tasks = append(tasks, teamserver.Task{})
-		err = tasksSqlRows.Scan(&(tasks[len(tasks)-1].TaskId), &(tasks[len(tasks)-1].Task))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return tasks, nil
 }
 
 func (tqr *TaskQueueRepository) TaskQueuePush(task string) error {
