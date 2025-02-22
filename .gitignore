@@ -3,3 +3,4 @@ teamserver
 !teamserver/
 .env/
 tmp/
+*_templ.go
