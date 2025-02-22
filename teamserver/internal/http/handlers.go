@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
@@ -12,6 +13,8 @@ import (
 	"strconv"
 )
 
+const errSerializationFmt = "Failed to serialize register response with: %w"
+
 func ApiErrorHandler(err error, w http.ResponseWriter) {
 	target := &teamserver.ClientError{}
 
@@ -20,27 +23,27 @@ func ApiErrorHandler(err error, w http.ResponseWriter) {
 	} else { // Default to internal
 		api.InternalErrorHandler(w)
 	}
+
+	log.Print(err)
 }
 
 func (server *Server) Register(w http.ResponseWriter, r *http.Request) {
 	agent, err := server.AgentService.AddAgent()
 	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to add id to database: %v", err)
+		ApiErrorHandler(fmt.Errorf("Failed to add agent: %w", err), w)
 		return
 	}
 
 	resp, err := AgentToRegisterResponse(agent)
 	if err != nil {
 		ApiErrorHandler(err, w)
-		log.Printf("%v", err)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to serialize register response with: %v", err)
+		ApiErrorHandler(fmt.Errorf(errSerializationFmt, err), w)
 		return
 	}
 }
@@ -55,8 +58,7 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 
 	tasks, err := server.AgentService.GetTasks(agentId)
 	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to get tasks for agent: %d - %v", agentId, err)
+		ApiErrorHandler(fmt.Errorf("Failed to get tasks for agent: %d - %w", agentId, err), w)
 		return
 	}
 
@@ -64,8 +66,7 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to serialize register response with: %v", err)
+		ApiErrorHandler(fmt.Errorf(errSerializationFmt, err), w)
 		return
 	}
 }
@@ -75,14 +76,12 @@ func (server *Server) PushTask(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&pushTasksReq)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
-		log.Printf("Bad request for task: %v", err)
 		return
 	}
 
 	err = server.TaskQueueService.TaskQueuePush(pushTasksReq.Task)
 	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to push to task queue with: %v", err)
+		ApiErrorHandler(fmt.Errorf("Failed to push to task queue with: %w", err), w)
 		return
 	}
 }
@@ -92,21 +91,18 @@ func (server *Server) SaveTaskResults(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&taskResults)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
-		log.Printf("Bad request: %v", err)
 		return
 	}
 
 	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
-		log.Printf("%v", err)
 		return
 	}
 
 	err = server.TaskResultsService.SaveTaskResults(agentId, PostTaskResultsRequestToTaskResultsIn(&taskResults))
 	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to save task results: %v", err)
+		ApiErrorHandler(fmt.Errorf("Failed to save task results: %w", err), w)
 		return
 	}
 }
@@ -115,14 +111,12 @@ func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
 	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
-		log.Printf("%v", err)
 		return
 	}
 
 	taskResultsDomain, err := server.TaskResultsService.GetTaskResults(agentId)
 	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to get task results: %v", err)
+		ApiErrorHandler(fmt.Errorf("Failed to get task results: %w", err), w)
 		return
 	}
 
@@ -131,8 +125,7 @@ func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
-		ApiErrorHandler(err, w)
-		log.Printf("Failed to serialize response with: %v", err)
+		ApiErrorHandler(fmt.Errorf(errSerializationFmt, err), w)
 		return
 	}
 }
