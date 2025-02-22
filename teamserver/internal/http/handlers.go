@@ -40,7 +40,6 @@ func (server *Server) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf(errSerializationFmt, err), w)
@@ -63,7 +62,7 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := TasksToGetTasksResponse(tasks)
-	w.Header().Set("Content-Type", "application/json")
+
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf(errSerializationFmt, err), w)
@@ -122,7 +121,6 @@ func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
 
 	resp := TaskResultsOutToGetTaskResultsResponse(taskResultsDomain)
 
-	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf(errSerializationFmt, err), w)
