@@ -63,12 +63,16 @@ func (server *Server) registerFrontendRouter() {
 	server.mux.Handle("/", router)
 }
 
-func (server *Server) ListenAndServe() {
+func (server *Server) ListenAndServe() error {
 	log.Print("Starting listening on: " + server.server.Addr)
-	log.Fatal(server.server.ListenAndServe())
+	return server.server.ListenAndServe()
 }
 
-func (server *Server) ListenAndServeTLS(cert string, key string) {
+func (server *Server) ListenAndServeTLS(cert string, key string) error {
 	log.Print("Starting listening on: " + server.server.Addr)
-	log.Fatal(server.server.ListenAndServeTLS(cert, key))
+	return server.server.ListenAndServeTLS(cert, key)
+}
+
+func (server *Server) Close() {
+	server.server.Close()
 }

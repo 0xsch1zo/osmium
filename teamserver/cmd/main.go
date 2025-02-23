@@ -58,8 +58,8 @@ func main() {
 
 	server := http.NewServer(*port, db)
 	if *https {
-		server.ListenAndServeTLS(*certificate, *key)
+		log.Fatal(server.ListenAndServeTLS(*certificate, *key))
 	} else {
-		server.ListenAndServe()
+		log.Fatal(server.ListenAndServe())
 	}
 }
