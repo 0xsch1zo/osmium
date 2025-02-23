@@ -90,7 +90,7 @@ func (ar *AgentRepository) UpdateAgentTaskProgress(agentId uint64) error {
 }
 
 func (ar *AgentRepository) ListAgents() ([]teamserver.AgentView, error) {
-	query := "SELECT AgentId, Task FROM Agents INNER JOIN TaskQueue ON Agents.TaskProgress = TaskQueue.TaskId"
+	query := "SELECT AgentId, Task FROM Agents LEFT JOIN TaskQueue ON Agents.TaskProgress = TaskQueue.TaskId"
 	sqlRow, err := ar.databaseHandle.Query(query)
 	if err != nil {
 		return nil, err
@@ -99,9 +99,16 @@ func (ar *AgentRepository) ListAgents() ([]teamserver.AgentView, error) {
 	var AgentViews []teamserver.AgentView
 	for sqlRow.Next() {
 		var agent teamserver.AgentView
-		err = sqlRow.Scan(&agent.AgentId, &agent.Task)
+		var nullTask sql.NullString
+		err = sqlRow.Scan(&agent.AgentId, &nullTask)
 		if err != nil {
 			return nil, err
+		}
+
+		if nullTask.Valid {
+			agent.Task = nullTask.String
+		} else {
+			agent.Task = "No tasks assigned"
 		}
 		AgentViews = append(AgentViews, agent)
 	}
