@@ -19,22 +19,22 @@ func (as *AgentService) AddAgent() (*teamserver.Agent, error) {
 	return agent, nil
 }
 
-func (as *AgentService) getAgent(agentId uint64) (*teamserver.Agent, error) {
+func (as *AgentService) GetAgent(agentId uint64) (*teamserver.Agent, error) {
 	agent, err := as.agentRepository.GetAgent(agentId)
 	return agent, repositoryErrWrapper(err)
 }
 
-func (as *AgentService) agentExists(agentId uint64) (bool, error) {
+func (as *AgentService) AgentExists(agentId uint64) (bool, error) {
 	exists, err := as.agentRepository.AgentExists(agentId)
 	return exists, repositoryErrWrapper(err)
 }
 
-func (as *AgentService) getAgentTaskProgress(agentId uint64) (uint64, error) {
+func (as *AgentService) GetAgentTaskProgress(agentId uint64) (uint64, error) {
 	taskProgress, err := as.agentRepository.GetAgentTaskProgress(agentId)
 	return taskProgress, repositoryErrWrapper(err)
 }
 
-func (as *AgentService) updateAgentTaskProgress(agentId uint64) error {
+func (as *AgentService) UpdateAgentTaskProgress(agentId uint64) error {
 	return repositoryErrWrapper(as.agentRepository.UpdateAgentTaskProgress(agentId))
 }
 
@@ -47,7 +47,7 @@ func (as *AgentService) ListAgents() ([]teamserver.AgentView, error) {
 }
 
 func (as *AgentService) GetTasks(agentId uint64) ([]teamserver.Task, error) {
-	taskProgress, err := as.getAgentTaskProgress(agentId)
+	taskProgress, err := as.GetAgentTaskProgress(agentId)
 	if err != nil {
 		return nil, err // GetAgentTaskProgress returns the custom error type already
 	}

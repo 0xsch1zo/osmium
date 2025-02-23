@@ -1,6 +1,6 @@
 package service
 
-func (tqs *TaskQueueService) taskExists(taskId uint64) (bool, error) {
+func (tqs *TaskQueueService) TaskExists(taskId uint64) (bool, error) {
 	exists, err := tqs.taskQueueRepository.TaskExists(taskId)
 	return exists, repositoryErrWrapper(err)
 }
