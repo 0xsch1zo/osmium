@@ -16,7 +16,7 @@ import (
 const port = 2137
 const addr = "http://localhost:2137"
 
-func StartServer(t *testing.T) (*thttp.Server, <-chan error) {
+func startServer(t *testing.T) (*thttp.Server, <-chan error) {
 	dbHandle, err := database.NewDatabase(":memory:")
 	if err != nil {
 		t.Fatalf("Failed to get setup db: %v", err)
@@ -35,8 +35,8 @@ func StartServer(t *testing.T) (*thttp.Server, <-chan error) {
 	return server, serverErrCh
 }
 
-func TestAddingAgentsIntegration(t *testing.T) {
-	server, serverErrCh := StartServer(t)
+func TestAddingAgents(t *testing.T) {
+	server, serverErrCh := startServer(t)
 
 	agentCreationResponse, err := http.Post(addr+"/api/register", "application/json", bytes.NewBufferString(""))
 	if err != nil {
