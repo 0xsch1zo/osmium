@@ -1,7 +1,7 @@
 package service_test
 
 import (
-	"math/rand/v2"
+	"strconv"
 	"testing"
 )
 
@@ -84,7 +84,12 @@ func TestGetAndUpdateAgentTaskProgress(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tasksAssignedCount := rand.Uint32() % 100
+	agentValidCheck, err := testedServices.agentService.AddAgent()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tasksAssignedCount := 2
 	for i := 0; i < int(tasksAssignedCount); i++ {
 		err = testedServices.taskQueueService.TaskQueuePush("some task")
 		if err != nil {
@@ -104,5 +109,13 @@ func TestGetAndUpdateAgentTaskProgress(t *testing.T) {
 
 	if taskProgress != uint64(tasksAssignedCount) {
 		t.Fatal("Wrong task progress")
+	}
+
+	taskProgressValidCheck, err := testedServices.agentService.GetAgentTaskProgress(agentValidCheck.AgentId)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if taskProgressValidCheck != 1 {
+		t.Fatal("Task progress of a different agent was changed: " + strconv.FormatUint(agentValidCheck.AgentId, 10))
 	}
 }

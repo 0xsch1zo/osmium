@@ -82,10 +82,9 @@ func (ar *AgentRepository) GetAgentTaskProgress(agentId uint64) (uint64, error) 
 	return taskProgress, nil
 }
 
-// TODO: Fix this shit
 func (ar *AgentRepository) UpdateAgentTaskProgress(agentId uint64) error {
-	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM TaskQueue)"
-	_, err := ar.databaseHandle.Exec(query)
+	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM TaskQueue) WHERE AgentId = ?"
+	_, err := ar.databaseHandle.Exec(query, agentId)
 	return err
 }
 
