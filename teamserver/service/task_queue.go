@@ -10,6 +10,7 @@ func (tqs *TaskQueueService) GetTaskQueue() ([]string, error) {
 	return taskQueue, repositoryErrWrapper(err)
 }
 
-func (tqs *TaskQueueService) TaskQueuePush(task string) error {
-	return repositoryErrWrapper(tqs.taskQueueRepository.TaskQueuePush(task))
+func (tqs *TaskQueueService) TaskQueuePush(task string) (uint64, error) {
+	taskId, err := tqs.taskQueueRepository.TaskQueuePush(task)
+	return taskId, repositoryErrWrapper(err)
 }

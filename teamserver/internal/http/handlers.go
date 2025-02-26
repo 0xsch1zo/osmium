@@ -78,7 +78,7 @@ func (server *Server) PushTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = server.TaskQueueService.TaskQueuePush(pushTasksReq.Task)
+	_, err = server.TaskQueueService.TaskQueuePush(pushTasksReq.Task)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to push to task queue with: %w", err), w)
 		return

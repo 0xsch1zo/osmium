@@ -38,8 +38,22 @@ func (tqr *TaskQueueRepository) GetTaskQueue() ([]string, error) {
 
 	return taskQueue, nil
 }
-func (tqr *TaskQueueRepository) TaskQueuePush(task string) error {
+
+func (tqr *TaskQueueRepository) TaskQueuePush(task string) (uint64, error) {
 	query := "INSERT INTO TaskQueue VALUES(NULL, ?)"
 	_, err := tqr.databaseHandle.Exec(query, task)
-	return err
+	if err != nil {
+		return 0, nil
+	}
+
+	query = "SELECT TaskId From TaskQueue ORDER BY TaskId DESC LIMIT 1"
+	row := tqr.databaseHandle.QueryRow(query)
+
+	var taskId uint64
+	err = row.Scan(&taskId)
+	if err != nil {
+		return 0, err
+	}
+
+	return taskId, err
 }

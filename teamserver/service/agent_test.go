@@ -91,7 +91,7 @@ func TestGetAndUpdateAgentTaskProgress(t *testing.T) {
 
 	tasksAssignedCount := 2
 	for i := 0; i < int(tasksAssignedCount); i++ {
-		err = testedServices.taskQueueService.TaskQueuePush("some task")
+		_, err = testedServices.taskQueueService.TaskQueuePush("some task")
 		if err != nil {
 			t.Fatal(err)
 		}
