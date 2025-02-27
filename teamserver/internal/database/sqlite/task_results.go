@@ -31,15 +31,16 @@ func (trr *TaskResultsRepository) SaveTaskResults(agentId uint64, taskResults []
 }
 
 func (trr *TaskResultsRepository) GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error) {
-	query := "SELECT Task, Output FROM TaskResults INNER JOIN TaskQueue ON TaskResults.TaskId = TaskQueue.TaskId WHERE agentId = ? AND taskId = ?"
-	taskResultsSqlRow := trr.databaseHandle.QueryRow(query)
+	query := "SELECT Task, Output FROM TaskResults INNER JOIN TaskQueue ON TaskQueue.TaskId = ? WHERE TaskResults.AgentId = ?"
+	taskResultsSqlRow := trr.databaseHandle.QueryRow(query, taskId, agentId)
 	taskResult := teamserver.TaskResultOut{}
-	err := taskResultsSqlRow.Scan(&taskResult.TaskId, &taskResult.Task, &taskResult.Output)
+	err := taskResultsSqlRow.Scan(&taskResult.Task, &taskResult.Output)
 	if err == sql.ErrNoRows {
 		return nil, service.NewRepositoryErrNotFound(err.Error())
 	} else if err != nil {
 		return nil, err
 	}
+	taskResult.TaskId = taskId
 
 	return &taskResult, nil
 }

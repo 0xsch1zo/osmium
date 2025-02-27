@@ -31,7 +31,7 @@ func (trs *TaskResultsService) SaveTaskResults(agentId uint64, taskResults []tea
 	if err != nil {
 		return err
 	} else if !valid {
-		return teamserver.NewClientError(ErrTaskIdNotFoundFmt)
+		return teamserver.NewClientError("TaskId not found")
 	}
 
 	err = trs.taskResultsRepository.SaveTaskResults(agentId, taskResults)

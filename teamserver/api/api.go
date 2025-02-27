@@ -57,7 +57,7 @@ type Error struct {
 }
 
 func writeError(w http.ResponseWriter, error Error) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json") // Yeah, it's json trust me bro
 	w.WriteHeader(error.Code)
 
 	_ = json.NewEncoder(w).Encode(error)
