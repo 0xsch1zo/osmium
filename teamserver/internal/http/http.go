@@ -59,6 +59,7 @@ func (server *Server) registerFrontendRouter() {
 	router := http.NewServeMux()
 	views := ui.NewUi(server.AgentService, server.TaskQueueService, server.TaskResultsService)
 	router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	router.Handle("/node_modules/", http.StripPrefix("/node_modules/", http.FileServer(http.Dir("./node_modules"))))
 	router.HandleFunc("/", views.RootHandler)
 	server.mux.Handle("/", router)
 }

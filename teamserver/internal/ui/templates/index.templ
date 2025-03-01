@@ -5,7 +5,9 @@ templ Index(agentsView templ.Component, taskQueueView templ.Component) {
 
 <head>
     <meta charset="UTF-8" />
-    <script src="/static/htmx.min.js"></script>
+    <script src="/node_modules/htmx/htmx.js"></script>
+    <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
+    <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
 </head>
 
 <body>
@@ -15,7 +17,9 @@ templ Index(agentsView templ.Component, taskQueueView templ.Component) {
     <div id="TaskQueue">
         @taskQueueView
     </div>
-    <div id="Shell"></div>
+    <div id="Commandline">
+        @CommandlineView()
+    </div>
 </body>
 
 </html>
@@ -26,7 +30,7 @@ templ ErrorPage(err string) {
 
 <head>
     <meta charset="UTF-8" />
-    <script src="/static/htmx.min.js"></script>
+    <script src="/node_modules/htmx/htmx.js"></script>
 </head>
 
 <body>
