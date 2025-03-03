@@ -45,17 +45,3 @@ func (as *AgentService) ListAgents() ([]teamserver.AgentView, error) {
 	}
 	return agentViews, nil
 }
-
-func (as *AgentService) GetTasks(agentId uint64) ([]teamserver.Task, error) {
-	taskProgress, err := as.GetAgentTaskProgress(agentId)
-	if err != nil {
-		return nil, err // GetAgentTaskProgress returns the custom error type already
-	}
-
-	tasks, err := as.agentRepository.GetTasks(agentId, taskProgress)
-	if err != nil {
-		return nil, repositoryErrWrapper(err)
-	}
-
-	return tasks, nil
-}

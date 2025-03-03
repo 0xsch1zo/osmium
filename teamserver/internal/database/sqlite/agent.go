@@ -11,7 +11,8 @@ import (
 )
 
 func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error) {
-	query := "INSERT INTO Agents (AgentId, TaskProgress, PrivateKey) values(NULL, 1, ?);"
+	// race condition
+	query := "INSERT INTO Agents (AgentId, TaskProgress, PrivateKey) values(NULL, 0, ?);"
 	_, err := ar.databaseHandle.Exec(query, tools.PrivRsaToPem(rsaPriv))
 	if err != nil {
 		return nil, err
@@ -68,6 +69,21 @@ func (ar *AgentRepository) AgentExists(agentId uint64) (bool, error) {
 	return true, nil
 }
 
+func (ar *AgentRepository) TaskExists(agentId uint64, taskId uint64) (bool, error) {
+	query := "SELECT TaskId FROM Tasks WHERE TaskId = ? AND AgentId = ?"
+	sqlRow := ar.databaseHandle.QueryRow(query, taskId, agentId)
+
+	var temp uint64
+	err := sqlRow.Scan(&temp)
+	if err == sql.ErrNoRows {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (ar *AgentRepository) GetAgentTaskProgress(agentId uint64) (uint64, error) {
 	query := "SELECT TaskProgress FROM Agents WHERE AgentId = ?"
 	AgentSqlRow := ar.databaseHandle.QueryRow(query, agentId)
@@ -83,13 +99,13 @@ func (ar *AgentRepository) GetAgentTaskProgress(agentId uint64) (uint64, error) 
 }
 
 func (ar *AgentRepository) UpdateAgentTaskProgress(agentId uint64) error {
-	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM TaskQueue) WHERE AgentId = ?"
+	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM Tasks) WHERE AgentId = ?"
 	_, err := ar.databaseHandle.Exec(query, agentId)
 	return err
 }
 
 func (ar *AgentRepository) ListAgents() ([]teamserver.AgentView, error) {
-	query := "SELECT AgentId, Task FROM Agents LEFT JOIN TaskQueue ON Agents.TaskProgress = TaskQueue.TaskId"
+	query := "SELECT AgentId FROM Agents"
 	sqlRow, err := ar.databaseHandle.Query(query)
 	if err != nil {
 		return nil, err
@@ -98,38 +114,13 @@ func (ar *AgentRepository) ListAgents() ([]teamserver.AgentView, error) {
 	var AgentViews []teamserver.AgentView
 	for sqlRow.Next() {
 		var agent teamserver.AgentView
-		var nullTask sql.NullString
-		err = sqlRow.Scan(&agent.AgentId, &nullTask)
+		err = sqlRow.Scan(&agent.AgentId)
 		if err != nil {
 			return nil, err
 		}
 
-		if nullTask.Valid {
-			agent.Task = nullTask.String
-		} else {
-			agent.Task = "No tasks assigned"
-		}
 		AgentViews = append(AgentViews, agent)
 	}
 
 	return AgentViews, nil
-}
-
-func (as *AgentRepository) GetTasks(agentId uint64, taskProgress uint64) ([]teamserver.Task, error) {
-	query := "SELECT TaskId, Task FROM TaskQueue WHERE TaskId >= ?"
-	tasksSqlRows, err := as.databaseHandle.Query(query, taskProgress)
-	if err != nil {
-		return nil, err
-	}
-
-	var tasks []teamserver.Task
-	for tasksSqlRows.Next() {
-		tasks = append(tasks, teamserver.Task{})
-		err = tasksSqlRows.Scan(&(tasks[len(tasks)-1].TaskId), &(tasks[len(tasks)-1].Task))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return tasks, nil
 }

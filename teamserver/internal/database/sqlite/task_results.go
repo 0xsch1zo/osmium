@@ -2,13 +2,12 @@ package sqlite
 
 import (
 	"database/sql"
-	"strings"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
 
-func (trr *TaskResultsRepository) SaveTaskResults(agentId uint64, taskResults []teamserver.TaskResultIn) error {
+/*func (trr *TaskResultsRepository) SaveTaskResults(agentId uint64, taskResults []teamserver.TaskResultIn) error {
 	var queryBuilder strings.Builder
 	queryBuilder.WriteString("INSERT INTO TaskResults (AgentId, TaskId, Output) VALUES")
 	values := []interface{}{}
@@ -28,10 +27,22 @@ func (trr *TaskResultsRepository) SaveTaskResults(agentId uint64, taskResults []
 
 	_, err = stmt.Exec(values...)
 	return err
+
+}*/
+
+func (trr *TaskResultsRepository) SaveTaskResult(agentId uint64, taskResult *teamserver.TaskResultIn) error {
+	query := "INSERT INTO TaskResults (AgentId, TaskId, Output) VALUES(?, ?, ?)"
+
+	_, err := trr.databaseHandle.Exec(query, agentId, taskResult.TaskId, taskResult.Output)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func (trr *TaskResultsRepository) GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error) {
-	query := "SELECT Task, Output FROM TaskResults INNER JOIN TaskQueue ON TaskQueue.TaskId = ? WHERE TaskResults.AgentId = ?"
+	query := "SELECT Task, Output FROM TaskResults INNER JOIN Tasks ON Tasks.TaskId = ? WHERE TaskResults.AgentId = ?"
 	taskResultsSqlRow := trr.databaseHandle.QueryRow(query, taskId, agentId)
 	taskResult := teamserver.TaskResultOut{}
 	err := taskResultsSqlRow.Scan(&taskResult.Task, &taskResult.Output)
@@ -45,7 +56,7 @@ func (trr *TaskResultsRepository) GetTaskResult(agentId uint64, taskId uint64) (
 	return &taskResult, nil
 }
 
-func (trr *TaskResultsRepository) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
+/*func (trr *TaskResultsRepository) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
 	query := "SELECT TaskResults.TaskId, Task, Output FROM TaskResults INNER JOIN TaskQueue ON TaskResults.TaskId = TaskQueue.TaskId WHERE agentId = ?"
 	taskResultsSqlRows, err := trr.databaseHandle.Query(query, agentId)
 	if err != nil {
@@ -64,4 +75,4 @@ func (trr *TaskResultsRepository) GetTaskResults(agentId uint64) ([]teamserver.T
 	}
 
 	return taskResults, nil
-}
+}*/

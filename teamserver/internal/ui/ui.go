@@ -10,14 +10,14 @@ import (
 
 type Ui struct {
 	agentService       *service.AgentService
-	taskQueueService   *service.TaskQueueService
+	tasksService       *service.TasksService
 	taskResultsService *service.TaskResultsService
 }
 
-func NewUi(as *service.AgentService, tqs *service.TaskQueueService, trr *service.TaskResultsService) *Ui {
+func NewUi(as *service.AgentService, ts *service.TasksService, trr *service.TaskResultsService) *Ui {
 	return &Ui{
 		agentService:       as,
-		taskQueueService:   tqs,
+		tasksService:       ts,
 		taskResultsService: trr,
 	}
 }
@@ -30,18 +30,14 @@ func UiErrorHandler(w http.ResponseWriter, r *http.Request, error string) {
 		api.InternalErrorHandler(w)
 	}
 }
+
 func (ui *Ui) RootHandler(w http.ResponseWriter, r *http.Request) {
 	agentsView, err := ui.agentsContainer()
 	if err != nil {
 		UiErrorHandler(w, r, err.Error())
 	}
 
-	taskQueueView, err := ui.taskQueueContainer()
-	if err != nil {
-		UiErrorHandler(w, r, err.Error())
-	}
-
-	homePage := templates.Index(agentsView, taskQueueView)
+	homePage := templates.Index(agentsView)
 	err = homePage.Render(r.Context(), w)
 	if err != nil {
 		UiErrorHandler(w, r, err.Error())
@@ -55,13 +51,4 @@ func (ui *Ui) agentsContainer() (templ.Component, error) {
 	}
 
 	return templates.AgentsView(agents), nil
-}
-
-func (ui *Ui) taskQueueContainer() (templ.Component, error) {
-	taskQueue, err := ui.taskQueueService.GetTaskQueue()
-	if err != nil {
-		return nil, err
-	}
-
-	return templates.TaskQueueView(taskQueue), nil
 }

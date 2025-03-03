@@ -48,14 +48,14 @@ func (server *Server) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
-	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
+	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
 	if err != nil {
 		api.RequestErrorHandler(w, err) // Clients error
 		log.Print(err)
 		return
 	}
 
-	tasks, err := server.AgentService.GetTasks(agentId)
+	tasks, err := server.TasksService.GetTasks(agentId)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to get tasks for agent: %d - %w", agentId, err), w)
 		return
@@ -70,50 +70,68 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (server *Server) PushTask(w http.ResponseWriter, r *http.Request) {
-	var pushTasksReq api.PushTaskRequest
-	err := json.NewDecoder(r.Body).Decode(&pushTasksReq)
+func (server *Server) AddTask(w http.ResponseWriter, r *http.Request) {
+	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
 		return
 	}
 
-	_, err = server.TaskQueueService.TaskQueuePush(pushTasksReq.Task)
+	var addTasksReq api.AddTaskRequest
+	err = json.NewDecoder(r.Body).Decode(&addTasksReq)
+	if err != nil {
+		api.RequestErrorHandler(w, err)
+		return
+	}
+
+	_, err = server.TasksService.AddTask(agentId, addTasksReq.Task)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to push to task queue with: %w", err), w)
 		return
 	}
 }
 
-func (server *Server) SaveTaskResults(w http.ResponseWriter, r *http.Request) {
-	var taskResults api.PostTaskResultsRequest
+func (server *Server) SaveTaskResult(w http.ResponseWriter, r *http.Request) {
+	var taskResults api.PostTaskResultRequest
 	err := json.NewDecoder(r.Body).Decode(&taskResults)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
 		return
 	}
 
-	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
+	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
 		return
 	}
 
-	err = server.TaskResultsService.SaveTaskResults(agentId, PostTaskResultsRequestToTaskResultsIn(&taskResults))
+	taskId, err := strconv.ParseUint(r.PathValue("taskId"), 10, 64)
+	if err != nil {
+		api.RequestErrorHandler(w, err)
+		return
+	}
+
+	err = server.TaskResultsService.SaveTaskResult(agentId, PostTaskResultRequestToTaskResultsIn(&taskResults, taskId))
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to save task results: %w", err), w)
 		return
 	}
 }
 
-func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
-	agentId, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
+func (server *Server) GetTaskResult(w http.ResponseWriter, r *http.Request) {
+	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
 		return
 	}
 
-	taskResultsDomain, err := server.TaskResultsService.GetTaskResults(agentId)
+	taskId, err := strconv.ParseUint(r.PathValue("taskId"), 10, 64)
+	if err != nil {
+		api.RequestErrorHandler(w, err)
+		return
+	}
+
+	taskResultsDomain, err := server.TaskResultsService.GetTaskResult(agentId, taskId)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to get task results: %w", err), w)
 		return

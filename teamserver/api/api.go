@@ -17,37 +17,27 @@ type GetTasksResponse struct {
 	}
 }
 
-type GetTaskQueueResponse struct {
-	Tasks []string
-}
-
-type PushTaskRequest struct {
+type AddTaskRequest struct {
 	Task string
 }
 
-type PostTaskResultsRequest struct {
-	TaskResults []struct {
-		TaskId uint64
-		Output string
-	}
+type PostTaskResultRequest struct {
+	Output string
 }
 
 type GetTaskResultRequest struct {
-	TaskIds []uint64
+	TaskId uint64
 }
 
-type GetTaskResultsResponse struct {
-	TaskResults []struct {
-		TaskId uint64
-		Task   string
-		Output string
-	}
+type GetTaskResultResponse struct {
+	TaskId uint64
+	Task   string
+	Output string
 }
 
 type ListAgentsResponse struct {
 	AgentViews []struct {
 		AgentId uint64
-		Task    string
 	}
 }
 

@@ -15,7 +15,7 @@ type Server struct {
 	mux                *http.ServeMux
 	server             *http.Server
 	AgentService       *service.AgentService
-	TaskQueueService   *service.TaskQueueService
+	TasksService       *service.TasksService
 	TaskResultsService *service.TaskResultsService
 }
 
@@ -23,7 +23,7 @@ func NewServer(port int, db *database.Database) *Server {
 	mux := http.NewServeMux()
 
 	agentRepo := (*db).NewAgentRepository()
-	taskQueueRepo := (*db).NewTaskQueueRepository()
+	tasksRepo := (*db).NewTasksRepository()
 	taskResultsRepo := (*db).NewTaskResultsRepository()
 
 	server := Server{
@@ -33,8 +33,8 @@ func NewServer(port int, db *database.Database) *Server {
 			Handler: mux,
 		},
 		AgentService:       service.NewAgentService(*agentRepo),
-		TaskQueueService:   service.NewTaskQueueService(*taskQueueRepo, *agentRepo),
-		TaskResultsService: service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *taskQueueRepo),
+		TasksService:       service.NewTasksService(*tasksRepo, *agentRepo),
+		TaskResultsService: service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *tasksRepo),
 	}
 
 	server.registerAgentApiRouter()
@@ -46,10 +46,12 @@ func NewServer(port int, db *database.Database) *Server {
 func (server *Server) registerAgentApiRouter() {
 	router := http.NewServeMux()
 	router.HandleFunc("POST /register", server.Register)
-	router.HandleFunc("POST /taskQueue", server.PushTask)
-	router.HandleFunc("GET /agents/{id}/tasks", server.GetTasks)
-	router.HandleFunc("POST /agents/{id}/results", server.SaveTaskResults)
-	router.HandleFunc("GET /agents/{id}/results", server.GetTaskResults)
+
+	router.HandleFunc("GET /agents/{agentId}/tasks", server.GetTasks)
+	router.HandleFunc("POST /agents/{agentId}/tasks", server.AddTask)
+
+	router.HandleFunc("GET /agents/{agentId}/results/{taskId}", server.GetTaskResult)
+	router.HandleFunc("POST /agents/{agentId}/results/{taskId}", server.SaveTaskResult)
 
 	middlewareStack := middleware.CreateStack(middleware.JsonContentType)
 	server.mux.Handle("/api/", middlewareStack(http.StripPrefix("/api", router)))
@@ -57,7 +59,7 @@ func (server *Server) registerAgentApiRouter() {
 
 func (server *Server) registerFrontendRouter() {
 	router := http.NewServeMux()
-	views := ui.NewUi(server.AgentService, server.TaskQueueService, server.TaskResultsService)
+	views := ui.NewUi(server.AgentService, server.TasksService, server.TaskResultsService)
 	router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	router.Handle("/node_modules/", http.StripPrefix("/node_modules/", http.FileServer(http.Dir("./node_modules"))))
 	router.HandleFunc("/", views.RootHandler)

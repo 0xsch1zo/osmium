@@ -29,34 +29,31 @@ type AgentRepository interface {
 	GetAgentTaskProgress(agentId uint64) (uint64, error)
 	UpdateAgentTaskProgress(agentId uint64) error
 	AgentExists(agentId uint64) (bool, error)
-	GetTasks(agentId uint64, taskProgress uint64) ([]teamserver.Task, error)
 }
 
-type TaskQueueRepository interface {
-	TaskQueuePush(task string) (uint64, error)
-	GetTaskQueue() ([]string, error)
-	TaskExists(taskId uint64) (bool, error)
+type TasksRepository interface {
+	AddTask(agentId uint64, task string) (uint64, error)
+	GetTasks(agentId uint64, taskId uint64) ([]teamserver.Task, error)
+	TaskExists(agentId uint64, taskId uint64) (bool, error)
 }
 
-// TOOO: Figure out how to translate api model to domain model when they're not one to one
 type TaskResultsRepository interface {
-	SaveTaskResults(agentId uint64, taskResults []teamserver.TaskResultIn) error
+	SaveTaskResult(agentId uint64, taskResult *teamserver.TaskResultIn) error
 	GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error)
-	GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error)
 }
 
 type AgentService struct {
 	agentRepository AgentRepository
 }
 
-type TaskQueueService struct {
-	agentService        *AgentService
-	taskQueueRepository TaskQueueRepository
+type TasksService struct {
+	agentService    *AgentService
+	tasksRepository TasksRepository
 }
 
 type TaskResultsService struct {
 	agentService          *AgentService
-	taskQueueService      *TaskQueueService
+	tasksService          *TasksService
 	taskResultsRepository TaskResultsRepository
 }
 
@@ -66,21 +63,21 @@ func NewAgentService(agentRepository AgentRepository) *AgentService {
 	}
 }
 
-func NewTaskQueueService(taskQueueRepository TaskQueueRepository, agentRepository AgentRepository) *TaskQueueService {
-	return &TaskQueueService{
-		agentService:        NewAgentService(agentRepository),
-		taskQueueRepository: taskQueueRepository,
+func NewTasksService(tasksRepository TasksRepository, agentRepository AgentRepository) *TasksService {
+	return &TasksService{
+		agentService:    NewAgentService(agentRepository),
+		tasksRepository: tasksRepository,
 	}
 }
 
 func NewTaskResultsService(
 	taskResultsRepository TaskResultsRepository,
 	agentRepository AgentRepository,
-	taskQueueRepository TaskQueueRepository,
+	tasksRepository TasksRepository,
 ) *TaskResultsService {
 	return &TaskResultsService{
 		agentService:          NewAgentService(agentRepository),
-		taskQueueService:      NewTaskQueueService(taskQueueRepository, agentRepository),
+		tasksService:          NewTasksService(tasksRepository, agentRepository),
 		taskResultsRepository: taskResultsRepository,
 	}
 }

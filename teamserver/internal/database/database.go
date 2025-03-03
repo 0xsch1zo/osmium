@@ -7,7 +7,7 @@ import (
 
 type Database interface {
 	NewAgentRepository() *service.AgentRepository
-	NewTaskQueueRepository() *service.TaskQueueRepository
+	NewTasksRepository() *service.TasksRepository
 	NewTaskResultsRepository() *service.TaskResultsRepository
 }
 

@@ -6,7 +6,7 @@ import (
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
-func (trs *TaskResultsService) validTaskResults(taskResults []teamserver.TaskResultIn) (bool, error) {
+/*func (trs *TaskResultsService) validTaskResults(taskResults []teamserver.TaskResultIn) (bool, error) {
 	for _, taskResult := range taskResults {
 		exists, err := trs.taskQueueService.TaskExists(taskResult.TaskId)
 		if err != nil {
@@ -40,6 +40,29 @@ func (trs *TaskResultsService) SaveTaskResults(agentId uint64, taskResults []tea
 	}
 
 	return nil
+}*/
+
+func (trs *TaskResultsService) SaveTaskResult(agentId uint64, taskResult *teamserver.TaskResultIn) error {
+	valid, err := trs.agentService.AgentExists(agentId)
+	if err != nil {
+		return err
+	} else if !valid {
+		return teamserver.NewClientError(fmt.Sprintf(ErrAgentIdNotFoundFmt, agentId))
+	}
+
+	valid, err = trs.tasksService.TaskExists(agentId, taskResult.TaskId)
+	if err != nil {
+		return err
+	} else if !valid {
+		return teamserver.NewClientError(fmt.Sprintf(ErrTaskIdNotFoundFmt, taskResult.TaskId))
+	}
+
+	err = trs.taskResultsRepository.SaveTaskResult(agentId, taskResult)
+	if err != nil {
+		return repositoryErrWrapper(err)
+	}
+
+	return nil
 }
 
 func (trs *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error) {
@@ -50,7 +73,7 @@ func (trs *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*te
 		return nil, teamserver.NewClientError(fmt.Sprintf(ErrAgentIdNotFoundFmt, agentId))
 	}
 
-	exists, err = trs.taskQueueService.TaskExists(taskId)
+	exists, err = trs.tasksService.TaskExists(agentId, taskId)
 	if err != nil {
 		return nil, err
 	} else if !exists {
@@ -65,7 +88,7 @@ func (trs *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*te
 	return taskResult, nil
 }
 
-func (trs *TaskResultsService) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
+/*func (trs *TaskResultsService) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
 	exists, err := trs.agentService.AgentExists(agentId)
 	if err != nil {
 		return nil, err
@@ -79,4 +102,4 @@ func (trs *TaskResultsService) GetTaskResults(agentId uint64) ([]teamserver.Task
 	}
 
 	return taskResltuts, nil
-}
+}*/

@@ -15,7 +15,7 @@ type AgentRepository struct {
 	databaseHandle *sql.DB
 }
 
-type TaskQueueRepository struct {
+type TasksRepository struct {
 	databaseHandle *sql.DB
 }
 
@@ -30,11 +30,11 @@ func (s *Sqlite) NewAgentRepository() *service.AgentRepository {
 	return &a
 }
 
-func (s *Sqlite) NewTaskQueueRepository() *service.TaskQueueRepository {
-	var tsq service.TaskQueueRepository = &TaskQueueRepository{
+func (s *Sqlite) NewTasksRepository() *service.TasksRepository {
+	var ts service.TasksRepository = &TasksRepository{
 		databaseHandle: s.databaseHandle,
 	}
-	return &tsq
+	return &ts
 }
 
 func (s *Sqlite) NewTaskResultsRepository() *service.TaskResultsRepository {
@@ -52,9 +52,11 @@ func SetupDatabase(sourceString string) (*Sqlite, error) {
 	}
 
 	query := `
-CREATE TABLE IF NOT EXISTS TaskQueue(
-    TaskId INTEGER PRIMARY KEY,
-    Task VARCHAR NOT NULL
+CREATE TABLE IF NOT EXISTS Tasks(
+    AgentId INT NOT NULL,
+    TaskId INT NOT NULL,
+    Task VARCHAR NOT NULL,
+    FOREIGN KEY (AgentId) REFERENCES Agents(AgentId) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Agents(

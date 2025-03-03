@@ -12,7 +12,6 @@ type Agent struct {
 
 type AgentView struct {
 	AgentId uint64
-	Task    string
 }
 
 type Task struct {

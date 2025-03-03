@@ -26,30 +26,19 @@ func TasksToGetTasksResponse(tasks []teamserver.Task) *api.GetTasksResponse {
 	return &tasksResponse
 }
 
-func PostTaskResultsRequestToTaskResultsIn(taskResults *api.PostTaskResultsRequest) []teamserver.TaskResultIn {
-	domainTaskResults := []teamserver.TaskResultIn{}
-	for _, taskResult := range taskResults.TaskResults {
-		domainTaskResults = append(domainTaskResults, taskResult)
+func PostTaskResultRequestToTaskResultsIn(taskResult *api.PostTaskResultRequest, taskId uint64) *teamserver.TaskResultIn {
+	return &teamserver.TaskResultIn{
+		TaskId: taskId,
+		Output: taskResult.Output,
 	}
-
-	return domainTaskResults
 }
 
-func TaskResultsOutToGetTaskResultsResponse(taskResultsOut []teamserver.TaskResultOut) *api.GetTaskResultsResponse {
-	taskResultsResponse := api.GetTaskResultsResponse{}
-	for _, taskResultOut := range taskResultsOut {
-		taskResultsResponse.TaskResults = append(taskResultsResponse.TaskResults, struct {
-			TaskId uint64
-			Task   string
-			Output string
-		}{
-			TaskId: taskResultOut.TaskId,
-			Task:   taskResultOut.Task,
-			Output: taskResultOut.Output,
-		})
+func TaskResultsOutToGetTaskResultsResponse(taskResultOut *teamserver.TaskResultOut) *api.GetTaskResultResponse {
+	return &api.GetTaskResultResponse{
+		TaskId: taskResultOut.TaskId,
+		Task:   taskResultOut.Task,
+		Output: taskResultOut.Output,
 	}
-
-	return &taskResultsResponse
 }
 
 func AgentViewsToListAgentsResponse(agentViews []teamserver.AgentView) *api.ListAgentsResponse {
