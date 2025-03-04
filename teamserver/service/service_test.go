@@ -7,7 +7,7 @@ import (
 
 type testedServices struct {
 	agentService       *service.AgentService
-	taskQueueService   *service.TaskQueueService
+	tasksService       *service.TasksService
 	taskResultsService *service.TaskResultsService
 }
 
@@ -18,12 +18,12 @@ func newTestedServices() (*testedServices, error) {
 	}
 
 	agentRepo := (*database).NewAgentRepository()
-	taskQueueRepo := (*database).NewTaskQueueRepository()
+	taskQueueRepo := (*database).NewTasksRepository()
 	taskResultsRepo := (*database).NewTaskResultsRepository()
 
 	return &testedServices{
 		agentService:       service.NewAgentService(*agentRepo),
-		taskQueueService:   service.NewTaskQueueService(*taskQueueRepo, *agentRepo),
+		tasksService:       service.NewTasksService(*taskQueueRepo, *agentRepo),
 		taskResultsService: service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *taskQueueRepo),
 	}, nil
 }

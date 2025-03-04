@@ -6,18 +6,23 @@ import (
 	"testing"
 )
 
-func TestTaskQueuePushAndTaskExists(t *testing.T) {
+func TestAddTaskAndTaskExists(t *testing.T) {
 	testedServices, err := newTestedServices()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	taskId, err := testedServices.taskQueueService.TaskQueuePush("test task")
+	agentId, err := testedServices.agentService.AddAgent()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	exists, err := testedServices.taskQueueService.TaskExists(taskId)
+	taskId, err := testedServices.tasksService.AddTask(agentId.AgentId, "test task")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	exists, err := testedServices.tasksService.TaskExists(agentId.AgentId, taskId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,6 +38,11 @@ func TestGetTaskQueue(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	agentId, err := testedServices.agentService.AddAgent()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	tasksGiven := []string{
 		"test task 1",
 		"test task 2",
@@ -40,18 +50,24 @@ func TestGetTaskQueue(t *testing.T) {
 	}
 
 	for _, task := range tasksGiven {
-		_, err := testedServices.taskQueueService.TaskQueuePush(task)
+		_, err := testedServices.tasksService.AddTask(agentId.AgentId, task)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	tasksGot, err := testedServices.taskQueueService.GetTaskQueue()
+	tasksGot, err := testedServices.tasksService.GetTasks(agentId.AgentId)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if slices.Compare(tasksGiven, tasksGot) != 0 {
+	var tasksStrGot []string
+
+	for _, task := range tasksGot {
+		tasksStrGot = append(tasksStrGot, task.Task)
+	}
+
+	if slices.Compare(tasksGiven, tasksStrGot) != 0 {
 		t.Error("Tasks returned don't match with the original list.")
 		t.Error("Expected:")
 		t.Error(tasksGiven)

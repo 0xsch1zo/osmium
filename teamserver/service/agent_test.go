@@ -91,7 +91,7 @@ func TestGetAndUpdateAgentTaskProgress(t *testing.T) {
 
 	tasksAssignedCount := 2
 	for i := 0; i < int(tasksAssignedCount); i++ {
-		_, err = testedServices.taskQueueService.TaskQueuePush("some task")
+		_, err = testedServices.tasksService.AddTask(agent.AgentId, "some task")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -115,7 +115,7 @@ func TestGetAndUpdateAgentTaskProgress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if taskProgressValidCheck != 1 {
+	if taskProgressValidCheck != 0 {
 		t.Fatal("Task progress of a different agent was changed: " + strconv.FormatUint(agentValidCheck.AgentId, 10))
 	}
 }

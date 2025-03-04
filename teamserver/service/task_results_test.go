@@ -29,7 +29,7 @@ func TestSaveAndGetTaskResults(t *testing.T) {
 	}
 
 	const testTask = "test task"
-	validTaskId, err := testedServices.taskQueueService.TaskQueuePush(testTask)
+	validTaskId, err := testedServices.tasksService.AddTask(validAgent.AgentId, testTask)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestSaveAndGetTaskResults(t *testing.T) {
 	}
 
 	testCaseIndex := 0
-	err = testedServices.taskResultsService.SaveTaskResults(given[testCaseIndex].agent, []teamserver.TaskResultIn{given[testCaseIndex].taskResultsIn})
+	err = testedServices.taskResultsService.SaveTaskResult(given[testCaseIndex].agent, &given[testCaseIndex].taskResultsIn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,19 +67,9 @@ func TestSaveAndGetTaskResults(t *testing.T) {
 		t.Error(taskResult)
 	}
 
-	taskResults, err := testedServices.taskResultsService.GetTaskResults(validAgent.AgentId) // Same thing but different function, need to check that too
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if taskResults[0] != *taskResult {
-		t.Error("Invalid task result returned by GetTaskdResults:")
-		t.Error(taskResults[0])
-	}
-
 	testCaseIndex++
 	for ; testCaseIndex < len(given); testCaseIndex++ {
-		err = testedServices.taskResultsService.SaveTaskResults(given[testCaseIndex].agent, []teamserver.TaskResultIn{given[testCaseIndex].taskResultsIn})
+		err = testedServices.taskResultsService.SaveTaskResult(given[testCaseIndex].agent, &given[testCaseIndex].taskResultsIn)
 		if err == nil {
 			t.Fatal("No error detected with incorrect arguments")
 		} else if !isClientError(err) {
