@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/http/middleware"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/ui"
@@ -17,6 +18,9 @@ type Server struct {
 	AgentService       *service.AgentService
 	TasksService       *service.TasksService
 	TaskResultsService *service.TaskResultsService
+
+	awaitedTaskIdChannel chan uint64
+	taskResultsChannel   chan *teamserver.TaskResultIn
 }
 
 func NewServer(port int, db *database.Database) *Server {
@@ -32,9 +36,11 @@ func NewServer(port int, db *database.Database) *Server {
 			Addr:    ":" + strconv.Itoa(port),
 			Handler: mux,
 		},
-		AgentService:       service.NewAgentService(*agentRepo),
-		TasksService:       service.NewTasksService(*tasksRepo, *agentRepo),
-		TaskResultsService: service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *tasksRepo),
+		AgentService:         service.NewAgentService(*agentRepo),
+		TasksService:         service.NewTasksService(*tasksRepo, *agentRepo),
+		TaskResultsService:   service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *tasksRepo),
+		awaitedTaskIdChannel: make(chan uint64),
+		taskResultsChannel:   make(chan *teamserver.TaskResultIn),
 	}
 
 	server.registerAgentApiRouter()
@@ -50,11 +56,14 @@ func (server *Server) registerAgentApiRouter() {
 	router.HandleFunc("GET /agents/{agentId}/tasks", server.GetTasks)
 	router.HandleFunc("POST /agents/{agentId}/tasks", server.AddTask)
 
-	router.HandleFunc("GET /agents/{agentId}/results/{taskId}", server.GetTaskResult)
 	router.HandleFunc("POST /agents/{agentId}/results/{taskId}", server.SaveTaskResult)
+	router.HandleFunc("GET /agents/{agentId}/results/{taskId}", server.GetTaskResult)
 
-	middlewareStack := middleware.CreateStack(middleware.JsonContentType)
-	server.mux.Handle("/api/", middlewareStack(http.StripPrefix("/api", router)))
+	SSEmiddleware := middleware.CreateStack(middleware.ServerSentEvents)
+	router.Handle("GET /agents/{agentId}/tasks/listen", SSEmiddleware(http.HandlerFunc(server.ListenAndServeTaskResults)))
+
+	commonMiddleware := middleware.CreateStack(middleware.JsonContentType)
+	server.mux.Handle("/api/", commonMiddleware(http.StripPrefix("/api", router)))
 }
 
 func (server *Server) registerFrontendRouter() {

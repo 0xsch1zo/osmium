@@ -15,6 +15,13 @@ import (
 
 const errSerializationFmt = "Failed to serialize register response with: %w"
 
+func sendEventMessage(w http.ResponseWriter, message string) error {
+	_, err := w.Write([]byte(
+		`event: message
+data: ` + message + "\n"))
+	return err
+}
+
 func ApiErrorHandler(err error, w http.ResponseWriter) {
 	target := &teamserver.ClientError{}
 
@@ -84,11 +91,14 @@ func (server *Server) AddTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = server.TasksService.AddTask(agentId, addTasksReq.Task)
+	taskId, err := server.TasksService.AddTask(agentId, addTasksReq.Task)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to push to task queue with: %w", err), w)
 		return
 	}
+
+	taskId--
+	server.awaitedTaskIdChannel <- taskId
 }
 
 func (server *Server) SaveTaskResult(w http.ResponseWriter, r *http.Request) {
@@ -111,11 +121,14 @@ func (server *Server) SaveTaskResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = server.TaskResultsService.SaveTaskResult(agentId, PostTaskResultRequestToTaskResultsIn(&taskResults, taskId))
+	domainTaskResults := PostTaskResultRequestToTaskResultsIn(&taskResults, taskId)
+	err = server.TaskResultsService.SaveTaskResult(agentId, domainTaskResults)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to save task results: %w", err), w)
 		return
 	}
+
+	server.taskResultsChannel <- domainTaskResults
 }
 
 func (server *Server) GetTaskResult(w http.ResponseWriter, r *http.Request) {
@@ -143,5 +156,27 @@ func (server *Server) GetTaskResult(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf(errSerializationFmt, err), w)
 		return
+	}
+}
+
+func (server *Server) ListenAndServeTaskResults(w http.ResponseWriter, r *http.Request) {
+	for {
+		taskId, ok := <-server.awaitedTaskIdChannel
+		if !ok {
+			break
+		}
+
+		taskResults, ok := <-server.taskResultsChannel
+		if !ok {
+			break
+		}
+
+		if taskResults.TaskId == taskId {
+			err := sendEventMessage(w, taskResults.Output)
+			if err != nil {
+				api.InternalErrorHandler(w)
+			}
+			break
+		}
 	}
 }
