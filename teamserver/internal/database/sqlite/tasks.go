@@ -23,6 +23,10 @@ func (tr *TasksRepository) TaskExists(agentId uint64, taskId uint64) (bool, erro
 
 func (tr *TasksRepository) AddTask(agentId uint64, task string) (uint64, error) {
 	tx, err := tr.databaseHandle.Begin()
+	if err != nil {
+		return 0, err
+	}
+
 	defer tx.Rollback()
 
 	query := "SELECT TaskId From Tasks WHERE AgentId = ? ORDER BY TaskId DESC LIMIT 1"
@@ -31,9 +35,7 @@ func (tr *TasksRepository) AddTask(agentId uint64, task string) (uint64, error) 
 	var lastTaskId uint64
 	var taskId uint64
 	err = row.Scan(&lastTaskId)
-	if err == sql.ErrNoRows {
-		taskId = 1
-	} else if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return 0, err
 	} else {
 		taskId = lastTaskId + 1

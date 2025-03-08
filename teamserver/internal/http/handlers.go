@@ -97,7 +97,6 @@ func (server *Server) AddTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskId--
 	server.awaitedTaskIdChannel <- taskId
 }
 
