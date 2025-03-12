@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  args_bin = ["--https", "--cert", "./.env/server.crt", "--key", "./.env/server.key"]
+  args_bin = []
   bin = "./tmp/main"
   cmd = "templ generate && go build -o ./tmp/main ./cmd/main.go"
   delay = 1000

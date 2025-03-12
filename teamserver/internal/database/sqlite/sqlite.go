@@ -23,6 +23,10 @@ type TaskResultsRepository struct {
 	databaseHandle *sql.DB
 }
 
+type AuthorizationRepository struct {
+	databaseHandle *sql.DB
+}
+
 func (s *Sqlite) NewAgentRepository() *service.AgentRepository {
 	var a service.AgentRepository = &AgentRepository{
 		databaseHandle: s.databaseHandle,
@@ -42,6 +46,13 @@ func (s *Sqlite) NewTaskResultsRepository() *service.TaskResultsRepository {
 		databaseHandle: s.databaseHandle,
 	}
 	return &trr
+}
+
+func (s *Sqlite) NewAuthorizationRepository() *service.AuthorizationRepository {
+	var auth service.AuthorizationRepository = &AuthorizationRepository{
+		databaseHandle: s.databaseHandle,
+	}
+	return &auth
 }
 
 // Shitty code use migrations or something
@@ -73,6 +84,14 @@ CREATE TABLE IF NOT EXISTS TaskResults(
     FOREIGN KEY (AgentId) REFERENCES Agents(AgentId) ON DELETE CASCADE,
     FOREIGN KEY (TaskId)  REFERENCES TaskQueue(TaskId) ON DELETE CASCADE,
     UNIQUE (AgentId, TaskId)
+);
+
+CREATE TABLE IF NOT EXISTS Users(
+    UserId INT PRIMARY KEY,
+    Username TEXT,
+    PasswordHash TEXT,
+    SessionToken TEXT,
+    UNIQUE(Username)
 );`
 	_, err = databaseHandle.Exec(query)
 

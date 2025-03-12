@@ -9,17 +9,42 @@ import (
 
 const ErrAgentIdNotFoundFmt = "AgentId not found: %d"
 const ErrTaskIdNotFoundFmt = "TaskId not found: %d"
+const ErrAlreadyExistsFmt = "%s already exists"
+const ErrEmptyString = "%s empty"
+const TokenSize = 32
 
 type RepositoryErrNotFound struct {
 	Err string
 }
 
-func (serr *RepositoryErrNotFound) Error() string {
-	return serr.Err
+type RepositoryErrAlreadyExists struct {
+	Err string
+}
+
+type RepositoryErrInvalidCredentials struct{}
+
+func (err *RepositoryErrNotFound) Error() string {
+	return err.Err
+}
+
+func (err *RepositoryErrAlreadyExists) Error() string {
+	return err.Err
+}
+
+func (err *RepositoryErrInvalidCredentials) Error() string {
+	return "Invalid credentials"
 }
 
 func NewRepositoryErrNotFound(err string) *RepositoryErrNotFound {
 	return &RepositoryErrNotFound{Err: err}
+}
+
+func NewRepositoryErrAlreadyExists(err string) *RepositoryErrAlreadyExists {
+	return &RepositoryErrAlreadyExists{Err: err}
+}
+
+func NewRepositoryErrInvalidCredentials() *RepositoryErrInvalidCredentials {
+	return &RepositoryErrInvalidCredentials{}
 }
 
 type AgentRepository interface {
@@ -42,6 +67,14 @@ type TaskResultsRepository interface {
 	GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error)
 }
 
+type AuthorizationRepository interface {
+	Register(username, passwordHash string) error
+	GetPasswordHash(username string) (string, error)
+	SetSessionToken(username, sessionToken string) error
+	GetSessionToken(username string) (string, error)
+	UsernameExists(username string) (bool, error)
+}
+
 type AgentService struct {
 	agentRepository AgentRepository
 }
@@ -55,6 +88,10 @@ type TaskResultsService struct {
 	agentService          *AgentService
 	tasksService          *TasksService
 	taskResultsRepository TaskResultsRepository
+}
+
+type AuthorizationService struct {
+	authorizationRepository AuthorizationRepository
 }
 
 func NewAgentService(agentRepository AgentRepository) *AgentService {
@@ -82,13 +119,23 @@ func NewTaskResultsService(
 	}
 }
 
+func NewAuthorizationService(authorizationRepository AuthorizationRepository) *AuthorizationService {
+	return &AuthorizationService{
+		authorizationRepository: authorizationRepository,
+	}
+}
+
 func repositoryErrWrapper(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	target := &RepositoryErrNotFound{}
-	if errors.As(err, &target) {
+	notFoundTarget := &RepositoryErrNotFound{}
+	alreadyExistsTarget := &RepositoryErrAlreadyExists{}
+	invalidCredentialsTarget := &RepositoryErrInvalidCredentials{}
+	if errors.As(err, &notFoundTarget) ||
+		errors.As(err, &alreadyExistsTarget) ||
+		errors.As(err, &invalidCredentialsTarget) {
 		return teamserver.NewClientError(err.Error())
 	}
 

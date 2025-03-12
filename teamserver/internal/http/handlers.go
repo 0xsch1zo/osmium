@@ -1,19 +1,22 @@
 package http
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-
-	"github.com/sentientbottleofwine/osmium/teamserver"
-	"github.com/sentientbottleofwine/osmium/teamserver/api"
-
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
+
+	"github.com/sentientbottleofwine/osmium/teamserver"
+	"github.com/sentientbottleofwine/osmium/teamserver/api"
 )
 
-const errSerializationFmt = "Failed to serialize register response with: %w"
+const (
+	errSerializationFmt = "Failed to serialize register response with: %w"
+	errUnauthorized     = "Unauthorized"
+)
 
 func sendEventMessage(w http.ResponseWriter, message string) error {
 	_, err := w.Write([]byte(
@@ -34,7 +37,7 @@ func ApiErrorHandler(err error, w http.ResponseWriter) {
 	log.Print(err)
 }
 
-func (server *Server) Register(w http.ResponseWriter, r *http.Request) {
+func (server *Server) AgentRegister(w http.ResponseWriter, r *http.Request) {
 	agent, err := server.AgentService.AddAgent()
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to add agent: %w", err), w)
@@ -84,14 +87,14 @@ func (server *Server) AddTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var addTasksReq api.AddTaskRequest
-	err = json.NewDecoder(r.Body).Decode(&addTasksReq)
+	var addTaskReq api.AddTaskRequest
+	err = json.NewDecoder(r.Body).Decode(&addTaskReq)
 	if err != nil {
 		api.RequestErrorHandler(w, err)
 		return
 	}
 
-	taskId, err := server.TasksService.AddTask(agentId, addTasksReq.Task)
+	taskId, err := server.TasksService.AddTask(agentId, addTaskReq.Task)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to push to task queue with: %w", err), w)
 		return
@@ -178,4 +181,29 @@ func (server *Server) ListenAndServeTaskResults(w http.ResponseWriter, r *http.R
 			break
 		}
 	}
+}
+
+func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
+	var creds api.LoginRequest
+	err := json.NewDecoder(r.Body).Decode(&creds)
+	if err != nil {
+		api.InternalErrorHandler(w)
+		return
+	}
+
+	if len(creds.Username) == 0 || len(creds.Password) == 0 {
+		api.RequestErrorHandler(w, errors.New(errUnauthorized))
+	}
+
+	sessionToken, err := server.AuthorizationService.Login(creds.Username, creds.Password)
+	if err != nil {
+		ApiErrorHandler(err, w)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    sessionToken,
+		Expires:  time.Now().Add(tokenExpiryTime),
+		HttpOnly: true,
+	})
 }

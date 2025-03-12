@@ -34,10 +34,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server := http.NewServer(int(serverConfig.Port), db)
-	if serverConfig.Https {
-		log.Fatal(server.ListenAndServeTLS(serverConfig.CertificatePath, serverConfig.KeyPath))
-	} else {
-		log.Fatal(server.ListenAndServe())
+	server, err := http.NewServer(serverConfig, db)
+	if err != nil {
+		log.Fatal(err)
 	}
+	log.Fatal(server.ListenAndServe())
 }

@@ -41,6 +41,15 @@ type ListAgentsResponse struct {
 	}
 }
 
+type LoginRequest struct {
+	Username string
+	Password string
+}
+
+type AuthorizedRequest struct {
+	Username string
+}
+
 type Error struct {
 	Code    int
 	Message string

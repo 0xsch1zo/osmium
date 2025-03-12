@@ -9,6 +9,7 @@ type Database interface {
 	NewAgentRepository() *service.AgentRepository
 	NewTasksRepository() *service.TasksRepository
 	NewTaskResultsRepository() *service.TaskResultsRepository
+	NewAuthorizationRepository() *service.AuthorizationRepository
 }
 
 func NewDatabase(sourceString string) (*Database, error) {

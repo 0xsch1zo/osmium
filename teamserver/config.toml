@@ -1,0 +1,6 @@
+port = 8443
+https = true
+cert = "./.env/server.crt"
+key = "./.env/server.key"
+username = "kys"
+password = "now"
