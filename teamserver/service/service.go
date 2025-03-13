@@ -3,15 +3,18 @@ package service
 import (
 	"crypto/rsa"
 	"errors"
+	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
-const ErrAgentIdNotFoundFmt = "AgentId not found: %d"
-const ErrTaskIdNotFoundFmt = "TaskId not found: %d"
-const ErrAlreadyExistsFmt = "%s already exists"
-const ErrEmptyString = "%s empty"
-const TokenSize = 32
+const (
+	ErrAgentIdNotFoundFmt = "AgentId not found: %d"
+	ErrTaskIdNotFoundFmt  = "TaskId not found: %d"
+	ErrAlreadyExistsFmt   = "%s already exists"
+	ErrEmptyString        = "%s empty"
+	jwtExpiryTime         = 15 * time.Minute
+)
 
 type RepositoryErrNotFound struct {
 	Err string
@@ -22,6 +25,8 @@ type RepositoryErrAlreadyExists struct {
 }
 
 type RepositoryErrInvalidCredentials struct{}
+
+type RepositoryErrTokenNotOld struct{}
 
 func (err *RepositoryErrNotFound) Error() string {
 	return err.Err
@@ -35,6 +40,10 @@ func (err *RepositoryErrInvalidCredentials) Error() string {
 	return "Invalid credentials"
 }
 
+func (err *RepositoryErrTokenNotOld) Error() string {
+	return "Token is not old enough"
+}
+
 func NewRepositoryErrNotFound(err string) *RepositoryErrNotFound {
 	return &RepositoryErrNotFound{Err: err}
 }
@@ -45,6 +54,10 @@ func NewRepositoryErrAlreadyExists(err string) *RepositoryErrAlreadyExists {
 
 func NewRepositoryErrInvalidCredentials() *RepositoryErrInvalidCredentials {
 	return &RepositoryErrInvalidCredentials{}
+}
+
+func NewRepositoryErrTokenNotOld() *RepositoryErrTokenNotOld {
+	return &RepositoryErrTokenNotOld{}
 }
 
 type AgentRepository interface {
@@ -70,8 +83,6 @@ type TaskResultsRepository interface {
 type AuthorizationRepository interface {
 	Register(username, passwordHash string) error
 	GetPasswordHash(username string) (string, error)
-	SetSessionToken(username, sessionToken string) error
-	GetSessionToken(username string) (string, error)
 	UsernameExists(username string) (bool, error)
 }
 
@@ -91,6 +102,7 @@ type TaskResultsService struct {
 }
 
 type AuthorizationService struct {
+	jwtKey                  string
 	authorizationRepository AuthorizationRepository
 }
 
@@ -119,8 +131,9 @@ func NewTaskResultsService(
 	}
 }
 
-func NewAuthorizationService(authorizationRepository AuthorizationRepository) *AuthorizationService {
+func NewAuthorizationService(authorizationRepository AuthorizationRepository, jwtKey string) *AuthorizationService {
 	return &AuthorizationService{
+		jwtKey:                  jwtKey,
 		authorizationRepository: authorizationRepository,
 	}
 }
@@ -133,9 +146,12 @@ func repositoryErrWrapper(err error) error {
 	notFoundTarget := &RepositoryErrNotFound{}
 	alreadyExistsTarget := &RepositoryErrAlreadyExists{}
 	invalidCredentialsTarget := &RepositoryErrInvalidCredentials{}
+	tokenNotOld := &RepositoryErrTokenNotOld{}
+
 	if errors.As(err, &notFoundTarget) ||
 		errors.As(err, &alreadyExistsTarget) ||
-		errors.As(err, &invalidCredentialsTarget) {
+		errors.As(err, &invalidCredentialsTarget) ||
+		errors.As(err, &tokenNotOld) {
 		return teamserver.NewClientError(err.Error())
 	}
 

@@ -90,7 +90,6 @@ CREATE TABLE IF NOT EXISTS Users(
     UserId INT PRIMARY KEY,
     Username TEXT,
     PasswordHash TEXT,
-    SessionToken TEXT,
     UNIQUE(Username)
 );`
 	_, err = databaseHandle.Exec(query)

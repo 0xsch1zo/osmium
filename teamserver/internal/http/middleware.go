@@ -1,11 +1,7 @@
 package http
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"io"
-	"log"
 	"net/http"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
@@ -41,8 +37,21 @@ func ServerSentEvents(next http.Handler) http.Handler {
 
 func (server *Server) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var username api.AuthorizedRequest
-		body := bytes.Buffer{}
+		token, err := r.Cookie("token")
+		if err == http.ErrNoCookie {
+			api.RequestErrorHandler(w, errors.New(errUnauthorized))
+		} else if err != nil {
+			api.RequestErrorHandler(w, err)
+			return
+		}
+
+		err = server.AuthorizationService.Authorize(token.Value)
+		if err != nil {
+			ApiErrorHandler(err, w)
+			return
+		}
+
+		/*body := bytes.Buffer{}
 		rCopy := io.TeeReader(r.Body, &body)
 		err := json.NewDecoder(rCopy).Decode(&username)
 		if err != nil {
@@ -85,7 +94,7 @@ func (server *Server) Authenticate(next http.Handler) http.Handler {
 		if len(sessionToken.Value) == 0 || sessionToken.Value != sessionTokenDb {
 			api.RequestErrorHandler(w, errors.New(errUnauthorized))
 			return
-		}
+		}*/
 		next.ServeHTTP(w, r)
 	})
 }

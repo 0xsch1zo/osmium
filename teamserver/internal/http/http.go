@@ -3,8 +3,8 @@ package http
 import (
 	"log"
 	"net/http"
+	"os"
 	"strconv"
-	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/config"
@@ -26,8 +26,6 @@ type Server struct {
 	taskResultsChannel   chan *teamserver.TaskResultIn
 }
 
-const tokenExpiryTime = time.Hour * 24 * 7
-
 func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 	mux := http.NewServeMux()
 
@@ -46,7 +44,7 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 		AgentService:         service.NewAgentService(*agentRepo),
 		TasksService:         service.NewTasksService(*tasksRepo, *agentRepo),
 		TaskResultsService:   service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *tasksRepo),
-		AuthorizationService: service.NewAuthorizationService(*authRepo),
+		AuthorizationService: service.NewAuthorizationService(*authRepo, os.Getenv("JWT_SECRET")),
 		awaitedTaskIdChannel: make(chan uint64),
 		taskResultsChannel:   make(chan *teamserver.TaskResultIn),
 	}

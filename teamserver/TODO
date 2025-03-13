@@ -1,4 +1,5 @@
 check for uniqueness in such way to return client error
 Nothing calls update task progress
-csrf
 properly check for errors after unmarshalling json
+change jwt signing algo
+check if agent exists in AddTask 

@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
@@ -195,15 +194,14 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 		api.RequestErrorHandler(w, errors.New(errUnauthorized))
 	}
 
-	sessionToken, err := server.AuthorizationService.Login(creds.Username, creds.Password)
+	token, err := server.AuthorizationService.Login(creds.Username, creds.Password)
 	if err != nil {
 		ApiErrorHandler(err, w)
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_token",
-		Value:    sessionToken,
-		Expires:  time.Now().Add(tokenExpiryTime),
-		HttpOnly: true,
+		Name:    "token",
+		Value:   token.Token,
+		Expires: token.ExpiryTime,
 	})
 }

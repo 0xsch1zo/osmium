@@ -4,17 +4,23 @@ import (
 	"flag"
 	"log"
 
+	"github.com/joho/godotenv"
+
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/config"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/http"
 )
 
 func main() {
+	err := godotenv.Load(".env/env")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	configPath := flag.String("config", "", "Explicitly specify conifg location")
 	flag.Parse()
 
 	var serverConfig *config.Config
-	var err error
 	if len(*configPath) != 0 {
 		serverConfig, err = config.ParseConfig(*configPath)
 	} else {
