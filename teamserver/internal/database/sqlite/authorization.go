@@ -3,8 +3,6 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
-
-	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
 
 func (authr *AuthorizationRepository) Register(username, passwordHash string) error {
@@ -18,10 +16,6 @@ func (authr *AuthorizationRepository) GetPasswordHash(username string) (string, 
 	row := authr.databaseHandle.QueryRow(query, username)
 	var passwordHash string
 	err := row.Scan(&passwordHash)
-	if err == sql.ErrNoRows {
-		return "", service.NewRepositoryErrInvalidCredentials()
-	}
-
 	return passwordHash, err
 }
 

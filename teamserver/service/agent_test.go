@@ -37,15 +37,10 @@ func TestAgentExists(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exists, err := testedServices.agentService.AgentExists(agent.AgentId)
+	err = testedServices.agentService.AgentExists(agent.AgentId)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	if !exists {
-		t.Fatal("Agent reported as not existing")
-	}
-
 }
 
 func TestListAgents(t *testing.T) {

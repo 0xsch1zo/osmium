@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,17 +12,15 @@ import (
 )
 
 func (auths *AuthorizationService) Register(username, password string) error {
-	exists, err := auths.UsernameExists(username)
-	if err != nil {
+	err := auths.UsernameExists(username)
+	if err == errors.New(errInvalidCredentials) {
+		return teamserver.NewClientError(fmt.Sprintf(errAlreadyExistsFmt, "username"))
+	} else if err != nil {
 		return err
 	}
 
-	if exists {
-		return teamserver.NewClientError(fmt.Sprintf(ErrAlreadyExistsFmt, "username"))
-	}
-
 	if len(username) == 0 || len(password) == 0 {
-		return teamserver.NewClientError(fmt.Sprintf(ErrEmptyString, "username or password"))
+		return teamserver.NewClientError(fmt.Sprintf(errEmptyString, "username or password"))
 	}
 
 	passwordHash, err := tools.HashPassword(password)
@@ -30,7 +29,7 @@ func (auths *AuthorizationService) Register(username, password string) error {
 	}
 
 	err = auths.authorizationRepository.Register(username, passwordHash)
-	return repositoryErrWrapper(err)
+	return err
 }
 
 func (auths *AuthorizationService) Login(username, password string) (*teamserver.AuthToken, error) {
@@ -45,7 +44,7 @@ func (auths *AuthorizationService) Login(username, password string) (*teamserver
 	}
 
 	if !match {
-		return nil, repositoryErrWrapper(NewRepositoryErrInvalidCredentials())
+		return nil, teamserver.NewClientError(errInvalidCredentials)
 	}
 
 	expiryTime := time.Now().Add(jwtExpiryTime)
@@ -67,20 +66,16 @@ func (auths *AuthorizationService) Authorize(token string) error {
 	}
 
 	if !authorized {
-		return NewRepositoryErrInvalidCredentials()
+		return teamserver.NewClientError(errInvalidCredentials)
 	}
 
 	return nil
 }
 
 func (auths *AuthorizationService) RefreshToken(token string) (*teamserver.AuthToken, error) {
-	authorized, err := tools.VerifyJWT(token, auths.jwtKey)
+	err := auths.Authorize(token)
 	if err != nil {
 		return nil, err
-	}
-
-	if !authorized {
-		return nil, NewRepositoryErrInvalidCredentials()
 	}
 
 	claims, err := tools.GetJWTClaims(token, auths.jwtKey)
@@ -89,7 +84,7 @@ func (auths *AuthorizationService) RefreshToken(token string) (*teamserver.AuthT
 	}
 
 	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
-		return nil, NewRepositoryErrTokenNotOld()
+		return nil, teamserver.NewClientError(errTokenNotOld)
 	}
 
 	expiryTime := time.Now().Add(jwtExpiryTime)
@@ -102,11 +97,24 @@ func (auths *AuthorizationService) RefreshToken(token string) (*teamserver.AuthT
 }
 
 func (auths *AuthorizationService) GetPasswordHash(username string) (string, error) {
+	err := auths.UsernameExists(username)
+	if err != nil {
+		return "", err
+	}
+
 	passwordHash, err := auths.authorizationRepository.GetPasswordHash(username)
-	return passwordHash, repositoryErrWrapper(err)
+	return passwordHash, err
 }
 
-func (auths *AuthorizationService) UsernameExists(username string) (bool, error) {
+func (auths *AuthorizationService) UsernameExists(username string) error {
 	exists, err := auths.authorizationRepository.UsernameExists(username)
-	return exists, repositoryErrWrapper(err)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return teamserver.NewClientError(errInvalidCredentials)
+	}
+
+	return nil
 }

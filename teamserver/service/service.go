@@ -2,63 +2,20 @@ package service
 
 import (
 	"crypto/rsa"
-	"errors"
 	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
 const (
-	ErrAgentIdNotFoundFmt = "AgentId not found: %d"
-	ErrTaskIdNotFoundFmt  = "TaskId not found: %d"
-	ErrAlreadyExistsFmt   = "%s already exists"
-	ErrEmptyString        = "%s empty"
+	errAgentIdNotFoundFmt = "AgentId not found: %d"
+	errTaskIdNotFoundFmt  = "TaskId not found: %d"
+	errAlreadyExistsFmt   = "%s already exists"
+	errEmptyString        = "%s empty"
+	errTokenNotOld        = "Token is not old enugh"
+	errInvalidCredentials = "Invalid credentials"
 	jwtExpiryTime         = 15 * time.Minute
 )
-
-type RepositoryErrNotFound struct {
-	Err string
-}
-
-type RepositoryErrAlreadyExists struct {
-	Err string
-}
-
-type RepositoryErrInvalidCredentials struct{}
-
-type RepositoryErrTokenNotOld struct{}
-
-func (err *RepositoryErrNotFound) Error() string {
-	return err.Err
-}
-
-func (err *RepositoryErrAlreadyExists) Error() string {
-	return err.Err
-}
-
-func (err *RepositoryErrInvalidCredentials) Error() string {
-	return "Invalid credentials"
-}
-
-func (err *RepositoryErrTokenNotOld) Error() string {
-	return "Token is not old enough"
-}
-
-func NewRepositoryErrNotFound(err string) *RepositoryErrNotFound {
-	return &RepositoryErrNotFound{Err: err}
-}
-
-func NewRepositoryErrAlreadyExists(err string) *RepositoryErrAlreadyExists {
-	return &RepositoryErrAlreadyExists{Err: err}
-}
-
-func NewRepositoryErrInvalidCredentials() *RepositoryErrInvalidCredentials {
-	return &RepositoryErrInvalidCredentials{}
-}
-
-func NewRepositoryErrTokenNotOld() *RepositoryErrTokenNotOld {
-	return &RepositoryErrTokenNotOld{}
-}
 
 type AgentRepository interface {
 	AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error)
@@ -136,24 +93,4 @@ func NewAuthorizationService(authorizationRepository AuthorizationRepository, jw
 		jwtKey:                  jwtKey,
 		authorizationRepository: authorizationRepository,
 	}
-}
-
-func repositoryErrWrapper(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	notFoundTarget := &RepositoryErrNotFound{}
-	alreadyExistsTarget := &RepositoryErrAlreadyExists{}
-	invalidCredentialsTarget := &RepositoryErrInvalidCredentials{}
-	tokenNotOld := &RepositoryErrTokenNotOld{}
-
-	if errors.As(err, &notFoundTarget) ||
-		errors.As(err, &alreadyExistsTarget) ||
-		errors.As(err, &invalidCredentialsTarget) ||
-		errors.As(err, &tokenNotOld) {
-		return teamserver.NewClientError(err.Error())
-	}
-
-	return teamserver.NewServerError(err.Error())
 }

@@ -2,7 +2,6 @@ package service_test
 
 import (
 	"slices"
-	"strconv"
 	"testing"
 )
 
@@ -22,13 +21,9 @@ func TestAddTaskAndTaskExists(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exists, err := testedServices.tasksService.TaskExists(agentId.AgentId, taskId)
+	err = testedServices.tasksService.TaskExists(agentId.AgentId, taskId)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if !exists {
-		t.Fatal("Pushed task doesn't exist, id: " + strconv.FormatUint(taskId, 10))
 	}
 }
 

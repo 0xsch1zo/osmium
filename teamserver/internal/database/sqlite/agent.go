@@ -3,11 +3,9 @@ package sqlite
 import (
 	"crypto/rsa"
 	"database/sql"
-	"fmt"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
-	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
 
 func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error) {
@@ -41,9 +39,7 @@ func (ar *AgentRepository) GetAgent(agentId uint64) (*teamserver.Agent, error) {
 	var agent teamserver.Agent
 	var agentPrivateKeyPem string
 	err := AgentSqlRow.Scan(&agent.AgentId, &agent.TaskProgress, &agentPrivateKeyPem)
-	if err == sql.ErrNoRows {
-		return nil, service.NewRepositoryErrNotFound(fmt.Sprintf(service.ErrAgentIdNotFoundFmt, agentId))
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -69,33 +65,12 @@ func (ar *AgentRepository) AgentExists(agentId uint64) (bool, error) {
 	return true, nil
 }
 
-func (ar *AgentRepository) TaskExists(agentId uint64, taskId uint64) (bool, error) {
-	query := "SELECT TaskId FROM Tasks WHERE TaskId = ? AND AgentId = ?"
-	sqlRow := ar.databaseHandle.QueryRow(query, taskId, agentId)
-
-	var temp uint64
-	err := sqlRow.Scan(&temp)
-	if err == sql.ErrNoRows {
-		return false, nil
-	} else if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
 func (ar *AgentRepository) GetAgentTaskProgress(agentId uint64) (uint64, error) {
 	query := "SELECT TaskProgress FROM Agents WHERE AgentId = ?"
 	AgentSqlRow := ar.databaseHandle.QueryRow(query, agentId)
 	var taskProgress uint64
 	err := AgentSqlRow.Scan(&taskProgress)
-	if err == sql.ErrNoRows {
-		return 0, service.NewRepositoryErrNotFound(fmt.Sprintf(service.ErrAgentIdNotFoundFmt, agentId))
-	} else if err != nil {
-		return 0, err
-	}
-
-	return taskProgress, nil
+	return taskProgress, err
 }
 
 func (ar *AgentRepository) UpdateAgentTaskProgress(agentId uint64) error {

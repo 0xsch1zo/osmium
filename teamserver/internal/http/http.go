@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -52,16 +53,15 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 	server.registerAgentApiRouter()
 	server.registerFrontendRouter()
 
-	exists, err := server.AuthorizationService.UsernameExists(config.Username)
-	if err != nil {
-		return nil, err
-	}
-
-	if !exists {
+	target := &teamserver.ClientError{}
+	err := server.AuthorizationService.UsernameExists(config.Username)
+	if errors.As(err, &target) {
 		err := server.AuthorizationService.Register(config.Username, config.Password)
 		if err != nil {
 			return nil, err
 		}
+	} else if err != nil {
+		return nil, err
 	}
 
 	return &server, nil

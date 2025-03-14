@@ -1,10 +1,7 @@
 package sqlite
 
 import (
-	"database/sql"
-
 	"github.com/sentientbottleofwine/osmium/teamserver"
-	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
 
 func (trr *TaskResultsRepository) SaveTaskResult(agentId uint64, taskResult *teamserver.TaskResultIn) error {
@@ -23,11 +20,10 @@ func (trr *TaskResultsRepository) GetTaskResult(agentId uint64, taskId uint64) (
 	taskResultsSqlRow := trr.databaseHandle.QueryRow(query, taskId, agentId)
 	taskResult := teamserver.TaskResultOut{}
 	err := taskResultsSqlRow.Scan(&taskResult.Task, &taskResult.Output)
-	if err == sql.ErrNoRows {
-		return nil, service.NewRepositoryErrNotFound(err.Error())
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
+
 	taskResult.TaskId = taskId
 
 	return &taskResult, nil
