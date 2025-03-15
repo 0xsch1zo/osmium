@@ -70,13 +70,16 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 func (server *Server) registerAgentApiRouter() {
 	router := http.NewServeMux()
 
+	// Auth
+	router.HandleFunc("POST /auth/login", server.Login)
+	router.HandleFunc("POST /auth/refresh", server.RefreshToken)
+
 	// agent
 	router.HandleFunc("POST /agents/register", server.AgentRegister)
 	router.HandleFunc("GET /agents/{agentId}/tasks", server.GetTasks)
 	router.HandleFunc("POST /agents/{agentId}/results/{taskId}", server.SaveTaskResult)
 
 	// user
-	router.HandleFunc("POST /auth/login", server.Login)
 	router.Handle("POST /agents/{agentId}/tasks", server.Authenticate(http.HandlerFunc(server.AddTask)))
 	router.Handle("GET /agents/{agentId}/results/{taskId}", server.Authenticate(http.HandlerFunc(server.GetTaskResult)))
 	router.Handle("GET /agents/{agentId}/tasks/listen", ServerSentEvents(http.HandlerFunc(server.ListenAndServeTaskResults)))

@@ -3,7 +3,6 @@ package teamserver
 import (
 	"crypto/rsa"
 	"github.com/golang-jwt/jwt/v5"
-	"time"
 )
 
 type Agent struct {
@@ -30,11 +29,6 @@ type TaskResultOut struct {
 	TaskId uint64
 	Task   string
 	Output string
-}
-
-type AuthToken struct {
-	Token      string
-	ExpiryTime time.Time
 }
 
 type Claims struct {

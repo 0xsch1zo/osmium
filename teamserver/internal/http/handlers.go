@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
@@ -199,9 +200,16 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 		ApiErrorHandler(err, w)
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
-		Value:   token.Token,
-		Expires: token.ExpiryTime,
-	})
+	w.Header().Add("Authorization", "Bearer "+token)
+}
+
+func (server *Server) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	tokenRaw := r.Header["Authorization"][0]
+	token := strings.TrimPrefix(tokenRaw, "Bearer ")
+	refreshedToken, err := server.AuthorizationService.RefreshToken(token)
+	if err != nil {
+		ApiErrorHandler(err, w)
+	}
+
+	w.Header().Add("Authorization", "Bearer "+refreshedToken)
 }
