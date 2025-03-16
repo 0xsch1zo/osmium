@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
 )
@@ -37,15 +38,15 @@ func ServerSentEvents(next http.Handler) http.Handler {
 
 func (server *Server) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, err := r.Cookie("token")
-		if err == http.ErrNoCookie {
+		tokenRaw := r.Header["Authorization"]
+		if len(tokenRaw) == 0 {
 			api.RequestErrorHandler(w, errors.New(errUnauthorized))
-		} else if err != nil {
-			api.RequestErrorHandler(w, err)
 			return
 		}
 
-		err = server.AuthorizationService.Authorize(token.Value)
+		token := strings.TrimPrefix(tokenRaw[0], "Bearer ")
+		err := server.AuthorizationService.Authorize(token)
+
 		if err != nil {
 			ApiErrorHandler(err, w)
 			return

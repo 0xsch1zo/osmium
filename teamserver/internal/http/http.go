@@ -22,9 +22,6 @@ type Server struct {
 	TasksService         *service.TasksService
 	TaskResultsService   *service.TaskResultsService
 	AuthorizationService *service.AuthorizationService
-
-	awaitedTaskIdChannel chan uint64
-	taskResultsChannel   chan *teamserver.TaskResultIn
 }
 
 func NewServer(config *config.Config, db *database.Database) (*Server, error) {
@@ -46,8 +43,6 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 		TasksService:         service.NewTasksService(*tasksRepo, *agentRepo),
 		TaskResultsService:   service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *tasksRepo),
 		AuthorizationService: service.NewAuthorizationService(*authRepo, os.Getenv("JWT_SECRET")),
-		awaitedTaskIdChannel: make(chan uint64),
-		taskResultsChannel:   make(chan *teamserver.TaskResultIn),
 	}
 
 	server.registerAgentApiRouter()

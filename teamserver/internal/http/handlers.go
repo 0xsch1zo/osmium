@@ -94,13 +94,11 @@ func (server *Server) AddTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskId, err := server.TasksService.AddTask(agentId, addTaskReq.Task)
+	_, err = server.TasksService.AddTask(agentId, addTaskReq.Task)
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to push to task queue with: %w", err), w)
 		return
 	}
-
-	server.awaitedTaskIdChannel <- taskId
 }
 
 func (server *Server) SaveTaskResult(w http.ResponseWriter, r *http.Request) {
@@ -129,8 +127,6 @@ func (server *Server) SaveTaskResult(w http.ResponseWriter, r *http.Request) {
 		ApiErrorHandler(fmt.Errorf("Failed to save task results: %w", err), w)
 		return
 	}
-
-	server.taskResultsChannel <- domainTaskResults
 }
 
 func (server *Server) GetTaskResult(w http.ResponseWriter, r *http.Request) {
@@ -162,25 +158,23 @@ func (server *Server) GetTaskResult(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *Server) ListenAndServeTaskResults(w http.ResponseWriter, r *http.Request) {
-	for {
-		taskId, ok := <-server.awaitedTaskIdChannel
-		if !ok {
-			break
-		}
-
-		taskResults, ok := <-server.taskResultsChannel
-		if !ok {
-			break
-		}
-
-		if taskResults.TaskId == taskId {
-			err := sendEventMessage(w, taskResults.Output)
-			if err != nil {
-				api.InternalErrorHandler(w)
-			}
-			break
-		}
+	/*taskId, ok := <-server.awaitedTaskIdChannel
+	if !ok {
+		break
 	}
+
+	taskResults, ok := <-server.taskResultsChannel
+	if !ok {
+		break
+	}
+
+	if taskResults.TaskId == taskId {
+		err := sendEventMessage(w, taskResults.Output)
+		if err != nil {
+			api.InternalErrorHandler(w)
+		}
+		break
+	}*/
 }
 
 func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
@@ -193,19 +187,26 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 
 	if len(creds.Username) == 0 || len(creds.Password) == 0 {
 		api.RequestErrorHandler(w, errors.New(errUnauthorized))
+		return
 	}
 
 	token, err := server.AuthorizationService.Login(creds.Username, creds.Password)
 	if err != nil {
 		ApiErrorHandler(err, w)
+		return
 	}
 
 	w.Header().Add("Authorization", "Bearer "+token)
 }
 
 func (server *Server) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	tokenRaw := r.Header["Authorization"][0]
-	token := strings.TrimPrefix(tokenRaw, "Bearer ")
+	tokenRaw := r.Header["Authorization"]
+	if len(tokenRaw) == 0 {
+		api.RequestErrorHandler(w, errors.New(errUnauthorized))
+		return
+	}
+
+	token := strings.TrimPrefix(tokenRaw[0], "Bearer ")
 	refreshedToken, err := server.AuthorizationService.RefreshToken(token)
 	if err != nil {
 		ApiErrorHandler(err, w)
