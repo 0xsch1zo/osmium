@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -13,9 +12,9 @@ import (
 
 func (auths *AuthorizationService) Register(username, password string) error {
 	err := auths.UsernameExists(username)
-	if err == errors.New(errInvalidCredentials) {
+	if err == nil {
 		return teamserver.NewClientError(fmt.Sprintf(errAlreadyExistsFmt, "username"))
-	} else if err != nil {
+	} else if err.Error() != errInvalidCredentials {
 		return err
 	}
 
