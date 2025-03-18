@@ -20,6 +20,11 @@ func (trs *TaskResultsService) SaveTaskResult(agentId uint64, taskResult *teamse
 		return err
 	}
 
+	err = trs.agentService.UpdateAgentTaskProgress(agentId)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -40,4 +45,19 @@ func (trs *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*te
 	}
 
 	return taskResult, nil
+}
+
+func (trs *TaskResultsService) TaskResultExists(agentId, taskId uint64) (bool, error) {
+	err := trs.agentService.AgentExists(agentId)
+	if err != nil {
+		return false, err
+	}
+
+	err = trs.tasksService.TaskExists(agentId, taskId)
+	if err != nil {
+		return false, err
+	}
+
+	exists, err := trs.taskResultsRepository.TaskResultExists(agentId, taskId)
+	return exists, err
 }

@@ -2,3 +2,4 @@ check for uniqueness in such way to return client error
 Nothing calls update task progress
 properly check for errors after unmarshalling json
 change jwt signing algo
+fix task progress bug

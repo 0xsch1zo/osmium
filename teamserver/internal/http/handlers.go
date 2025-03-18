@@ -158,23 +158,49 @@ func (server *Server) GetTaskResult(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *Server) ListenAndServeTaskResults(w http.ResponseWriter, r *http.Request) {
-	/*taskId, ok := <-server.awaitedTaskIdChannel
-	if !ok {
-		break
+	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
+	if err != nil {
+		api.RequestErrorHandler(w, err)
+		return
 	}
 
-	taskResults, ok := <-server.taskResultsChannel
-	if !ok {
-		break
-	}
+	for {
+		// Poll untill we get a newly started task
+		tasks, err := server.TasksService.GetTasks(agentId)
+		for len(tasks) == 0 {
+			tasks, err = server.TasksService.GetTasks(agentId)
+			if err != nil {
+				ApiErrorHandler(err, w)
+				return
+			}
+		}
 
-	if taskResults.TaskId == taskId {
-		err := sendEventMessage(w, taskResults.Output)
-		if err != nil {
-			api.InternalErrorHandler(w)
+		// Unlikely to have many tasks
+		for _, task := range tasks {
+			// Wait for taskResult to be devlivered
+			for {
+				exists, err := server.TaskResultsService.TaskResultExists(agentId, task.TaskId)
+				if err != nil {
+					ApiErrorHandler(err, w)
+					return
+				}
+
+				if exists {
+					break
+				}
+			}
+
+			taskResult, err := server.TaskResultsService.GetTaskResult(agentId, task.TaskId)
+			log.Print(taskResult.Output)
+			err = sendEventMessage(w, taskResult.Output)
+			if err != nil {
+				api.InternalErrorHandler(w)
+				log.Print(err)
+				return
+			}
 		}
 		break
-	}*/
+	}
 }
 
 func (server *Server) Login(w http.ResponseWriter, r *http.Request) {

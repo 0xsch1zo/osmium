@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"database/sql"
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
@@ -27,4 +28,19 @@ func (trr *TaskResultsRepository) GetTaskResult(agentId uint64, taskId uint64) (
 	taskResult.TaskId = taskId
 
 	return &taskResult, nil
+}
+
+func (trr *TaskResultsRepository) TaskResultExists(agentId, taskId uint64) (bool, error) {
+	query := "SELECT TaskId FROM TaskResults WHERE AgentId = ? AND TaskId = ?"
+	row := trr.databaseHandle.QueryRow(query, agentId, taskId)
+
+	var temp uint64
+	err := row.Scan(&temp)
+	if err == sql.ErrNoRows {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
