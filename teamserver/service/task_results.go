@@ -1,18 +1,19 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
 func (trs *TaskResultsService) SaveTaskResult(agentId uint64, taskResult *teamserver.TaskResultIn) error {
-	err := trs.agentService.AgentExists(agentId)
+	exists, err := trs.TaskResultExists(agentId, taskResult.TaskId)
 	if err != nil {
 		return err
 	}
 
-	err = trs.tasksService.TaskExists(agentId, taskResult.TaskId)
-	if err != nil {
-		return err
+	if exists {
+		return teamserver.NewClientError(fmt.Sprintf(errAlreadyExistsFmt, "Task Result"))
 	}
 
 	err = trs.taskResultsRepository.SaveTaskResult(agentId, taskResult)

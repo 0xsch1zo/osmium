@@ -3,3 +3,4 @@ Nothing calls update task progress
 properly check for errors after unmarshalling json
 change jwt signing algo
 fix task progress bug
+write unit tests for auth
