@@ -3,6 +3,8 @@ package service_test
 import (
 	"slices"
 	"testing"
+
+	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
 func TestAddTaskAndTaskExists(t *testing.T) {
@@ -27,7 +29,7 @@ func TestAddTaskAndTaskExists(t *testing.T) {
 	}
 }
 
-func TestGetTaskQueue(t *testing.T) {
+func TestGetTasks(t *testing.T) {
 	testedServices, err := newTestedServices()
 	if err != nil {
 		t.Fatal(err)
@@ -63,10 +65,59 @@ func TestGetTaskQueue(t *testing.T) {
 	}
 
 	if slices.Compare(tasksGiven, tasksStrGot) != 0 {
-		t.Error("Tasks returned don't match with the original list.")
-		t.Error("Expected:")
-		t.Error(tasksGiven)
-		t.Error("Got:")
-		t.Fatal(tasksGot)
+		fatalErrUnexpectedData(
+			t,
+			"Tasks returned don't match with the original list.",
+			tasksGiven,
+			tasksGot,
+		)
+	}
+}
+
+func TestGetTasksWithStatuses(t *testing.T) {
+	testedServices, err := newTestedServices()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	agent, err := testedServices.agentService.AddAgent()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tasksGiven := []teamserver.Task{
+		{TaskId: 0, Task: "test task 1"},
+		{TaskId: 0, Task: "test task 2"},
+	}
+
+	for i := range tasksGiven {
+		taskId, err := testedServices.tasksService.AddTask(agent.AgentId, tasksGiven[1].Task)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		tasksGiven[i].TaskId = taskId
+	}
+
+	err = testedServices.tasksService.UpdateTaskStatus(agent.AgentId, tasksGiven[0].TaskId, teamserver.TaskFinished)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tasksGot, err := testedServices.tasksService.GetTasks(agent.AgentId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(tasksGot) != 1 ||
+		tasksGot[0].TaskId != tasksGiven[1].TaskId ||
+		tasksGot[0].Task != tasksGiven[1].Task {
+
+		fatalErrUnexpectedData(
+			t,
+			"Tasks returned don't match with the original list.",
+			tasksGiven,
+			tasksGot,
+		)
 	}
 }

@@ -58,13 +58,11 @@ func TestSaveAndGetTaskResults(t *testing.T) {
 	if taskResult.Output != given[testCaseIndex].taskResultsIn.Output ||
 		taskResult.TaskId != validTaskId ||
 		taskResult.Task != testTask {
-		t.Error("Task result data doesn't match")
-		t.Error("Expected:")
-		t.Error(given[testCaseIndex].taskResultsIn.Output)
-		t.Error(validTaskId)
-		t.Error(testTask)
-		t.Error("Got: ")
-		t.Error(taskResult)
+		fatalErrUnexpectedData(t, "Task result data doesn't match", struct {
+			output string
+			taskId uint64
+			task   string
+		}{given[testCaseIndex].taskResultsIn.Output, validTaskId, testTask}, taskResult)
 	}
 
 	testCaseIndex++

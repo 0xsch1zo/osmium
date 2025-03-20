@@ -1,6 +1,8 @@
 package service_test
 
 import (
+	"testing"
+
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
 	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
@@ -26,4 +28,12 @@ func newTestedServices() (*testedServices, error) {
 		tasksService:       service.NewTasksService(*taskQueueRepo, *agentRepo),
 		taskResultsService: service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *taskQueueRepo),
 	}, nil
+}
+
+func fatalErrUnexpectedData(t *testing.T, err string, expected, recieved any) {
+	t.Error(err)
+	t.Error("Expected:")
+	t.Error(expected)
+	t.Error("Got:")
+	t.Fatal(recieved)
 }
