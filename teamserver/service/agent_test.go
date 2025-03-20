@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"strconv"
 	"testing"
 )
 
@@ -65,52 +64,4 @@ func TestListAgents(t *testing.T) {
 		}
 	}
 	t.Fatal("Agent not found when listed")
-}
-
-// Covers both get and update
-func TestGetAndUpdateAgentTaskProgress(t *testing.T) {
-	testedServices, err := newTestedServices()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	agent, err := testedServices.agentService.AddAgent()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	agentValidCheck, err := testedServices.agentService.AddAgent()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	tasksAssignedCount := 2
-	for i := 0; i < int(tasksAssignedCount); i++ {
-		_, err = testedServices.tasksService.AddTask(agent.AgentId, "some task")
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	err = testedServices.agentService.UpdateAgentTaskProgress(agent.AgentId)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	taskProgress, err := testedServices.agentService.GetAgentTaskProgress(agent.AgentId)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if taskProgress != uint64(tasksAssignedCount) {
-		t.Fatal("Wrong task progress")
-	}
-
-	taskProgressValidCheck, err := testedServices.agentService.GetAgentTaskProgress(agentValidCheck.AgentId)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if taskProgressValidCheck != 0 {
-		t.Fatal("Task progress of a different agent was changed: " + strconv.FormatUint(agentValidCheck.AgentId, 10))
-	}
 }

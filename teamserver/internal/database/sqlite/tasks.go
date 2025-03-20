@@ -41,8 +41,8 @@ func (tr *TasksRepository) AddTask(agentId uint64, task string) (uint64, error) 
 		taskId = lastTaskId + 1
 	}
 
-	query = "INSERT INTO Tasks (AgentId, TaskId, Task) VALUES(?, ?, ?)"
-	_, err = tx.Exec(query, agentId, taskId, task)
+	query = "INSERT INTO Tasks (AgentId, TaskId, Task, Status) VALUES(?, ?, ?, ?)"
+	_, err = tx.Exec(query, agentId, taskId, task, teamserver.TaskUnfinished)
 	if err != nil {
 		return 0, err
 	}
@@ -51,9 +51,9 @@ func (tr *TasksRepository) AddTask(agentId uint64, task string) (uint64, error) 
 	return taskId, err
 }
 
-func (tr *TasksRepository) GetTasks(agentId uint64, taskProgress uint64) ([]teamserver.Task, error) {
-	query := "SELECT TaskId, Task FROM Tasks WHERE AgentId = ? AND TaskId > ?"
-	tasksSqlRows, err := tr.databaseHandle.Query(query, agentId, taskProgress)
+func (tr *TasksRepository) GetTasks(agentId uint64) ([]teamserver.Task, error) {
+	query := "SELECT TaskId, Task FROM Tasks WHERE AgentId = ? AND Status = ?"
+	tasksSqlRows, err := tr.databaseHandle.Query(query, agentId, teamserver.TaskUnfinished)
 	if err != nil {
 		return nil, err
 	}
@@ -68,4 +68,10 @@ func (tr *TasksRepository) GetTasks(agentId uint64, taskProgress uint64) ([]team
 	}
 
 	return tasks, nil
+}
+
+func (tr *TasksRepository) UpdateTaskStatus(agentId uint64, taskId uint64, status teamserver.TaskStatus) error {
+	query := "UPDATE Tasks SET Status = ? WHERE AgentId = ? AND TaskId = ?"
+	_, err := tr.databaseHandle.Exec(query, status, agentId, taskId)
+	return err
 }

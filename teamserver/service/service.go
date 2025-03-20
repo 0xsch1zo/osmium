@@ -21,15 +21,14 @@ type AgentRepository interface {
 	AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error)
 	GetAgent(agentId uint64) (*teamserver.Agent, error)
 	ListAgents() ([]teamserver.AgentView, error)
-	GetAgentTaskProgress(agentId uint64) (uint64, error)
-	UpdateAgentTaskProgress(agentId uint64) error
 	AgentExists(agentId uint64) (bool, error)
 }
 
 type TasksRepository interface {
 	AddTask(agentId uint64, task string) (uint64, error)
-	GetTasks(agentId uint64, taskId uint64) ([]teamserver.Task, error)
+	GetTasks(agentId uint64) ([]teamserver.Task, error)
 	TaskExists(agentId uint64, taskId uint64) (bool, error)
+	UpdateTaskStatus(agentId uint64, taskId uint64, status teamserver.TaskStatus) error
 }
 
 type TaskResultsRepository interface {

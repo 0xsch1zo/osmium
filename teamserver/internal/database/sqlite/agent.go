@@ -10,7 +10,7 @@ import (
 
 func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error) {
 	// race condition
-	query := "INSERT INTO Agents (AgentId, TaskProgress, PrivateKey) values(NULL, 0, ?);"
+	query := "INSERT INTO Agents (AgentId, PrivateKey) values(NULL, ?);"
 	_, err := ar.databaseHandle.Exec(query, tools.PrivRsaToPem(rsaPriv))
 	if err != nil {
 		return nil, err
@@ -33,12 +33,12 @@ func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent,
 }
 
 func (ar *AgentRepository) GetAgent(agentId uint64) (*teamserver.Agent, error) {
-	query := "SELECT AgentId, TaskProgress, PrivateKey FROM Agents WHERE AgentId = ?"
+	query := "SELECT AgentId, PrivateKey FROM Agents WHERE AgentId = ?"
 	AgentSqlRow := ar.databaseHandle.QueryRow(query, agentId)
 
 	var agent teamserver.Agent
 	var agentPrivateKeyPem string
-	err := AgentSqlRow.Scan(&agent.AgentId, &agent.TaskProgress, &agentPrivateKeyPem)
+	err := AgentSqlRow.Scan(&agent.AgentId, &agentPrivateKeyPem)
 	if err != nil {
 		return nil, err
 	}
@@ -63,20 +63,6 @@ func (ar *AgentRepository) AgentExists(agentId uint64) (bool, error) {
 	}
 
 	return true, nil
-}
-
-func (ar *AgentRepository) GetAgentTaskProgress(agentId uint64) (uint64, error) {
-	query := "SELECT TaskProgress FROM Agents WHERE AgentId = ?"
-	AgentSqlRow := ar.databaseHandle.QueryRow(query, agentId)
-	var taskProgress uint64
-	err := AgentSqlRow.Scan(&taskProgress)
-	return taskProgress, err
-}
-
-func (ar *AgentRepository) UpdateAgentTaskProgress(agentId uint64) error {
-	query := "UPDATE Agents SET TaskProgress = (SELECT MAX(TaskId) FROM Tasks) WHERE AgentId = ?"
-	_, err := ar.databaseHandle.Exec(query, agentId)
-	return err
 }
 
 func (ar *AgentRepository) ListAgents() ([]teamserver.AgentView, error) {

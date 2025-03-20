@@ -43,25 +43,6 @@ func (as *AgentService) AgentExists(agentId uint64) error {
 	return nil
 }
 
-func (as *AgentService) GetAgentTaskProgress(agentId uint64) (uint64, error) {
-	err := as.AgentExists(agentId)
-	if err != nil {
-		return 0, err
-	}
-
-	taskProgress, err := as.agentRepository.GetAgentTaskProgress(agentId)
-	return taskProgress, err
-}
-
-func (as *AgentService) UpdateAgentTaskProgress(agentId uint64) error {
-	err := as.AgentExists(agentId)
-	if err != nil {
-		return err
-	}
-
-	return as.agentRepository.UpdateAgentTaskProgress(agentId)
-}
-
 func (as *AgentService) ListAgents() ([]teamserver.AgentView, error) {
 	agentViews, err := as.agentRepository.ListAgents()
 	if err != nil {

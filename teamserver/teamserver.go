@@ -5,10 +5,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type TaskStatus uint
+
+const (
+	TaskUnfinished TaskStatus = iota
+	TaskFinished
+)
+
 type Agent struct {
-	AgentId      uint64
-	TaskProgress uint64
-	PrivateKey   *rsa.PrivateKey
+	AgentId    uint64
+	PrivateKey *rsa.PrivateKey
 }
 
 type AgentView struct {

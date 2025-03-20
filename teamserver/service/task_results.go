@@ -21,7 +21,7 @@ func (trs *TaskResultsService) SaveTaskResult(agentId uint64, taskResult *teamse
 		return err
 	}
 
-	err = trs.agentService.UpdateAgentTaskProgress(agentId)
+	err = trs.tasksService.UpdateTaskStatus(agentId, taskResult.TaskId, teamserver.TaskFinished)
 	if err != nil {
 		return err
 	}

@@ -17,12 +17,7 @@ func (ts *TasksService) AddTask(agentId uint64, task string) (uint64, error) {
 }
 
 func (ts *TasksService) GetTasks(agentId uint64) ([]teamserver.Task, error) {
-	taskProgress, err := ts.agentService.GetAgentTaskProgress(agentId)
-	if err != nil {
-		return nil, err // GetAgentTaskProgress returns the custom error type already
-	}
-
-	tasks, err := ts.tasksRepository.GetTasks(agentId, taskProgress)
+	tasks, err := ts.tasksRepository.GetTasks(agentId)
 	if err != nil {
 		return nil, err
 	}
@@ -46,4 +41,8 @@ func (ts *TasksService) TaskExists(agentId uint64, taskId uint64) error {
 	}
 
 	return nil
+}
+
+func (ts *TasksService) UpdateTaskStatus(agentId, taskId uint64, taskStatus teamserver.TaskStatus) error {
+	return ts.tasksRepository.UpdateTaskStatus(agentId, taskId, taskStatus)
 }
