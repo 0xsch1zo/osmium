@@ -236,6 +236,7 @@ func (server *Server) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	refreshedToken, err := server.AuthorizationService.RefreshToken(token)
 	if err != nil {
 		ApiErrorHandler(err, w)
+		return
 	}
 
 	w.Header().Add("Authorization", "Bearer "+refreshedToken)

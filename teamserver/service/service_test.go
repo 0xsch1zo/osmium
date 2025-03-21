@@ -7,10 +7,13 @@ import (
 	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
 
+const testingJwtKey string = "TESTING"
+
 type testedServices struct {
-	agentService       *service.AgentService
-	tasksService       *service.TasksService
-	taskResultsService *service.TaskResultsService
+	agentService         *service.AgentService
+	tasksService         *service.TasksService
+	taskResultsService   *service.TaskResultsService
+	authorizationService *service.AuthorizationService
 }
 
 func newTestedServices() (*testedServices, error) {
@@ -22,11 +25,13 @@ func newTestedServices() (*testedServices, error) {
 	agentRepo := (*database).NewAgentRepository()
 	taskQueueRepo := (*database).NewTasksRepository()
 	taskResultsRepo := (*database).NewTaskResultsRepository()
+	authorizationRepo := (*database).NewAuthorizationRepository()
 
 	return &testedServices{
-		agentService:       service.NewAgentService(*agentRepo),
-		tasksService:       service.NewTasksService(*taskQueueRepo, *agentRepo),
-		taskResultsService: service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *taskQueueRepo),
+		agentService:         service.NewAgentService(*agentRepo),
+		tasksService:         service.NewTasksService(*taskQueueRepo, *agentRepo),
+		taskResultsService:   service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *taskQueueRepo),
+		authorizationService: service.NewAuthorizationService(*authorizationRepo, testingJwtKey),
 	}, nil
 }
 
