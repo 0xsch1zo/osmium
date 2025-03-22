@@ -47,6 +47,9 @@ func GenerateJWT(username string, expiryTime time.Time, jwtKey string) (string, 
 func VerifyJWT(tokenStr, jwtKey string) (bool, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &teamserver.Claims{},
 		func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("Invalid signing method")
+			}
 			return []byte(jwtKey), nil
 		})
 	if err == jwt.ErrSignatureInvalid {
@@ -64,9 +67,13 @@ func VerifyJWT(tokenStr, jwtKey string) (bool, error) {
 
 func GetJWTClaims(tokenStr, jwtKey string) (*teamserver.Claims, error) {
 	var claims teamserver.Claims
-	token, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(jwtKey), nil
-	})
+	token, err := jwt.ParseWithClaims(tokenStr, &claims,
+		func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("Invalid signing method")
+			}
+			return []byte(jwtKey), nil
+		})
 	if err != nil {
 		return nil, err
 	}

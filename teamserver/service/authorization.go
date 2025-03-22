@@ -86,7 +86,7 @@ func (auths *AuthorizationService) RefreshToken(token string) (string, error) {
 	expiryTime := time.Now().Add(jwtExpiryTime)
 	claims.ExpiresAt = jwt.NewNumericDate(expiryTime)
 	tokenRefreshed, err := tools.NewJWTWithClaims(claims, auths.jwtKey)
-	return tokenRefreshed, nil
+	return tokenRefreshed, err
 }
 
 func (auths *AuthorizationService) GetPasswordHash(username string) (string, error) {
