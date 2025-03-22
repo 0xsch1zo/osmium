@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -164,42 +165,53 @@ func (server *Server) ListenAndServeTaskResults(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	// Don't care about tasks before
+	tasksExclude, err := server.TasksService.GetTasks(agentId)
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
+
 	for {
 		// Poll untill we get a newly started task
-		tasks, err := server.TasksService.GetTasks(agentId)
+		var tasks []teamserver.Task
 		for len(tasks) == 0 {
 			tasks, err = server.TasksService.GetTasks(agentId)
 			if err != nil {
 				ApiErrorHandler(err, w)
 				return
 			}
+
+			tasks = slices.DeleteFunc(tasks, func(task teamserver.Task) bool {
+				return slices.Contains(tasksExclude, task)
+			})
 		}
 
 		// Unlikely to have many tasks
 		for _, task := range tasks {
+			var exists bool
 			// Wait for taskResult to be devlivered
-			for {
-				exists, err := server.TaskResultsService.TaskResultExists(agentId, task.TaskId)
+			for !exists {
+				exists, err = server.TaskResultsService.TaskResultExists(agentId, task.TaskId)
 				if err != nil {
 					ApiErrorHandler(err, w)
 					return
 				}
-
-				if exists {
-					break
-				}
 			}
 
 			taskResult, err := server.TaskResultsService.GetTaskResult(agentId, task.TaskId)
-			log.Print(taskResult.Output)
+			if err != nil {
+				ApiErrorHandler(err, w)
+				return
+			}
+
 			err = sendEventMessage(w, taskResult.Output)
 			if err != nil {
 				api.InternalErrorHandler(w)
-				log.Print(err)
 				return
 			}
+			exists = false
 		}
-		break
 	}
 }
 
