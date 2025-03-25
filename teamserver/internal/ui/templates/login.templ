@@ -1,0 +1,30 @@
+package templates
+
+templ LoginPage() {
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+    <meta charset="UTF-8" />
+    <script src="/node_modules/htmx.org/dist/htmx.js"></script>
+</head>
+
+<body>
+    <div id="loginForm">
+        <form hx-post="/api/auth/login">
+            <label>Username</label>
+            <br />
+            <input type="text" id="username" name="username" />
+            <br />
+            <label>Password</label>
+            <br />
+            <input type="password" id="password" name="password" />
+            <br />
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+
+</html>
+}

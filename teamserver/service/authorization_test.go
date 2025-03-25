@@ -21,7 +21,7 @@ func getAuthToken(testedServices *testedServices) (string, error) {
 	}
 
 	token, err := testedServices.authorizationService.Login(username, password)
-	return token, err
+	return token.Token, err
 }
 
 func TestRegister(t *testing.T) {
@@ -66,6 +66,9 @@ func TestRefreshToken(t *testing.T) {
 
 	expiryTime := time.Now().Add(35 * time.Second)
 	token, err := tools.GenerateJWT(username, expiryTime, testingJwtKey)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	target := &teamserver.ClientError{}
 	_, err = testedServices.authorizationService.RefreshToken(token)

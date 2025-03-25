@@ -1,9 +1,11 @@
 package templates
 
-templ Index(agentsView templ.Component) {
+templ Dashboard(agentsView templ.Component) {
+<!DOCTYPE html>
 <html>
 
 <head>
+    <title>Dashboard</title>
     <meta charset="UTF-8" />
     <script src="/node_modules/htmx.org/dist/htmx.js"></script>
     <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
@@ -11,11 +13,13 @@ templ Index(agentsView templ.Component) {
 </head>
 
 <body>
-    <div id="Agents">
-        @agentsView
-    </div>
-    <div id="Commandline">
-        @CommandlineView()
+    <div id="Dashboard">
+        <div id="Agents">
+            @agentsView
+        </div>
+        <div id="Commandline">
+            @CommandlineView()
+        </div>
     </div>
 </body>
 

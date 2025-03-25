@@ -3,6 +3,7 @@ package teamserver
 import (
 	"crypto/rsa"
 	"github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
 type TaskStatus uint
@@ -42,6 +43,10 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+type AuthToken struct {
+	Token      string
+	ExpiryTime time.Time
+}
 type ClientError struct {
 	Err string
 }

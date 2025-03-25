@@ -18,6 +18,7 @@ type Server struct {
 	mux                  *http.ServeMux
 	server               *http.Server
 	config               *config.Config
+	ui                   *ui.Ui
 	AgentService         *service.AgentService
 	TasksService         *service.TasksService
 	TaskResultsService   *service.TaskResultsService
@@ -45,6 +46,7 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 		AuthorizationService: service.NewAuthorizationService(*authRepo, os.Getenv("JWT_SECRET")),
 	}
 
+	server.ui = ui.NewUi(server.AgentService, server.TasksService, server.TaskResultsService, server.AuthorizationService)
 	server.registerAgentApiRouter()
 	server.registerFrontendRouter()
 
@@ -87,10 +89,9 @@ func (server *Server) registerAgentApiRouter() {
 
 func (server *Server) registerFrontendRouter() {
 	router := http.NewServeMux()
-	views := ui.NewUi(server.AgentService, server.TasksService, server.TaskResultsService)
 	router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	router.Handle("/node_modules/", http.StripPrefix("/node_modules/", http.FileServer(http.Dir("./node_modules"))))
-	router.HandleFunc("/", views.RootHandler)
+	router.HandleFunc("/", server.ui.RootHandler)
 	server.mux.Handle("/", router)
 }
 

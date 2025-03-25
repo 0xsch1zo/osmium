@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
@@ -216,40 +215,55 @@ func (server *Server) ListenAndServeTaskResults(w http.ResponseWriter, r *http.R
 }
 
 func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
-	var creds api.LoginRequest
-	err := json.NewDecoder(r.Body).Decode(&creds)
-	if err != nil {
-		api.InternalErrorHandler(w)
-		return
-	}
-
-	if len(creds.Username) == 0 || len(creds.Password) == 0 {
-		api.RequestErrorHandler(w, errors.New(errUnauthorized))
-		return
-	}
-
-	token, err := server.AuthorizationService.Login(creds.Username, creds.Password)
+	err := r.ParseForm()
 	if err != nil {
 		ApiErrorHandler(err, w)
 		return
 	}
 
-	w.Header().Add("Authorization", "Bearer "+token)
+	username := r.Form["username"]
+	password := r.Form["password"]
+	if len(username) == 0 || len(password) == 0 {
+		api.RequestErrorHandler(w, errors.New(errUnauthorized))
+		return
+	}
+
+	token, err := server.AuthorizationService.Login(username[0], password[0])
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
+
+	w.Header().Add("HX-Redirect", "/")
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+		Expires:  token.ExpiryTime,
+		Value:    token.Token,
+	})
 }
 
 func (server *Server) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	tokenRaw := r.Header["Authorization"]
-	if len(tokenRaw) == 0 {
+	token, err := r.Cookie("token")
+	if err == http.ErrNoCookie {
 		api.RequestErrorHandler(w, errors.New(errUnauthorized))
 		return
 	}
 
-	token := strings.TrimPrefix(tokenRaw[0], "Bearer ")
-	refreshedToken, err := server.AuthorizationService.RefreshToken(token)
+	refreshedToken, err := server.AuthorizationService.RefreshToken(token.Value)
 	if err != nil {
 		ApiErrorHandler(err, w)
 		return
 	}
 
-	w.Header().Add("Authorization", "Bearer "+refreshedToken)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+		Expires:  refreshedToken.ExpiryTime,
+		Value:    refreshedToken.Token,
+	})
 }

@@ -41,13 +41,8 @@ type ListAgentsResponse struct {
 	}
 }
 
-type LoginRequest struct {
-	Username string
-	Password string
-}
-
-type AuthorizedRequest struct {
-	Username string
+type LoginResponse struct {
+	ExpiryTime int64
 }
 
 type Error struct {
