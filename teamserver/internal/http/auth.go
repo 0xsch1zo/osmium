@@ -6,7 +6,7 @@ import (
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/ui/templates"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/templates"
 )
 
 func (server *Server) Login(w http.ResponseWriter, r *http.Request) {

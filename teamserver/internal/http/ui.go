@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/ui/templates"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/templates"
 	"net/http"
 )
 

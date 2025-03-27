@@ -10,7 +10,6 @@ import (
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/config"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/database"
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/ui"
 	"github.com/sentientbottleofwine/osmium/teamserver/service"
 )
 
@@ -18,7 +17,6 @@ type Server struct {
 	mux                  *http.ServeMux
 	server               *http.Server
 	config               *config.Config
-	ui                   *ui.Ui
 	AgentService         *service.AgentService
 	TasksService         *service.TasksService
 	TaskResultsService   *service.TaskResultsService
@@ -46,7 +44,6 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 		AuthorizationService: service.NewAuthorizationService(*authRepo, os.Getenv("JWT_SECRET")),
 	}
 
-	server.ui = ui.NewUi(server.AgentService, server.TasksService, server.TaskResultsService, server.AuthorizationService)
 	server.registerAgentApiRouter()
 	server.registerFrontendRouter()
 
