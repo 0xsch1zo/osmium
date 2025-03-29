@@ -1,3 +1,4 @@
 properly check for errors after unmarshalling json
 change jwt signing algo
 add tests for bug in task results
+handle ctrl+c behaviour better

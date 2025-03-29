@@ -10,6 +10,8 @@ templ Dashboard(agentsView templ.Component) {
     <script src="/node_modules/htmx.org/dist/htmx.js"></script>
     <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
     <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
+    <script src="/static/js/commandline.js"></script>
+    <link rel="stylesheet" href="static/css/style.css" />
 </head>
 
 <body>
@@ -17,9 +19,7 @@ templ Dashboard(agentsView templ.Component) {
         <div id="Agents">
             @agentsView
         </div>
-        <div id="Commandline">
-            @CommandlineView()
-        </div>
+        <div id="Commandline"></div>
     </div>
 </body>
 

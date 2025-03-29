@@ -10,8 +10,11 @@ templ AgentsView(agents []teamserver.AgentView) {
         <th>Agent Id</th>
     </tr>
     for _, agent := range agents {
-    <tr>
+    <tr class="agent">
         <td>{ strconv.FormatUint(agent.AgentId, 10) }</td>
+        <td class="revealOnHover">
+            <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
+        </td>
     </tr>
     }
 </table>

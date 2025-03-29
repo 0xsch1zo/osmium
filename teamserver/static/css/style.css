@@ -1,0 +1,8 @@
+.revealOnHover {
+    display: none;
+}
+
+.agent:hover
+.revealOnHover {
+    display: table-row;
+}

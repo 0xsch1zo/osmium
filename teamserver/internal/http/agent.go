@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/websocket"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
 )
 
@@ -71,5 +72,70 @@ func (server *Server) AddTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ApiErrorHandler(fmt.Errorf("Failed to push to task queue with: %w", err), w)
 		return
+	}
+}
+
+func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
+	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
+	if err != nil {
+		api.RequestErrorHandler(w, err)
+		return
+	}
+
+	upgrader := websocket.Upgrader{}
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
+
+	for {
+		_, messageReader, err := conn.NextReader()
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
+		var task api.AddTaskRequest
+		err = json.NewDecoder(messageReader).Decode(&task)
+		if err != nil {
+			ApiErrorHandler(err, w)
+			return
+		}
+
+		taskId, err := server.TasksService.AddTask(agentId, task.Task)
+		if err != nil {
+			ApiErrorHandler(err, w)
+			return
+		}
+
+		var exists bool
+		for !exists {
+			exists, err = server.TaskResultsService.TaskResultExists(agentId, taskId)
+			if err != nil {
+				ApiErrorHandler(err, w)
+				return
+			}
+		}
+
+		taskResult, err := server.TaskResultsService.GetTaskResult(agentId, taskId)
+		if err != nil {
+			ApiErrorHandler(err, w)
+			return
+		}
+
+		messageWriter, err := conn.NextWriter(websocket.TextMessage)
+		if err != nil {
+			ApiErrorHandler(err, w)
+			return
+		}
+
+		err = json.NewEncoder(messageWriter).Encode(taskResult)
+		if err != nil {
+			ApiErrorHandler(err, w)
+			return
+		}
+
+		messageWriter.Close()
 	}
 }

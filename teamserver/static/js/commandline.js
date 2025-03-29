@@ -1,28 +1,33 @@
-function prompt(term) {
+var term = new Terminal({
+    cursorBlink: true,
+    fontFamily: "monospace",
+});
+
+dispose = term.onData()
+
+function prompt(agentId) {
     command = ""
-    term.write("\r\n$ ")
+    term.write("\r\nAgent " + agentId + " $ ")
 }
 
-function termInit() {
-    var term = new Terminal({
-        cursorBlink: true,
-        fontFamily: "monospace",
-    });
+async function termInit(agentId) {
+    dispose.dispose()
+    term.clear()
     term.open(document.getElementById('Commandline'));
-    term.prompt = function() {
-        term.write("\r\n$ ")
-    }
+    const ws = new WebSocket(`/api/agents/${agentId}/socket`)
+    await awaitSocketOpen(ws)
 
-    prompt(term)
-    term.onData(function(evt) {
+    prompt(agentId)
+    dispose = term.onData(async function(evt) {
         switch (evt) {
             case '\u0003': // Ctrl+C
                 term.write('^C');
-                prompt(term);
+                prompt(agentId);
                 break;
             case '\r': // Enter
-                // Post task
-                prompt(term)
+                term.write('\r\n')
+                term.writeln(await runCommand(ws, command))
+                prompt(agentId)
                 command = '';
                 break;
             case '\u007F': // Backspace (DEL)
@@ -40,4 +45,38 @@ function termInit() {
                 }
         }
     })
+}
+
+function awaitSocketOpen(ws) {
+    return new Promise(function(resolve) {
+        const listener = function() {
+            ws.removeEventListener("open", listener)
+            resolve()
+        }
+        ws.addEventListener("open", listener)
+    })
+}
+
+function recieveOutput(ws) {
+    return new Promise(function(resolve, reject) {
+        const messageListener = function(message) {
+            ws.removeEventListener("message", messageListener)
+            resolve(message.data)
+
+        }
+
+        const errorListener = function(error) {
+            ws.removeEventListener("error", errorListener)
+            reject(error)
+        }
+
+        ws.addEventListener("message", messageListener)
+        ws.addEventListener("error", errorListener)
+    })
+}
+
+async function runCommand(ws, command) {
+    ws.send(JSON.stringify({ Task: command }))
+    const taskResultJson = await recieveOutput(ws)
+    return JSON.parse(taskResultJson).Output
 }

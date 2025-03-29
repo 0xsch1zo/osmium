@@ -76,8 +76,8 @@ func (server *Server) registerAgentApiRouter() {
 	// user
 	router.Handle("POST /agents/{agentId}/tasks", server.Authenticate(http.HandlerFunc(server.AddTask)))
 	router.Handle("GET /agents/{agentId}/results/{taskId}", server.Authenticate(http.HandlerFunc(server.GetTaskResult)))
-	router.Handle("GET /agents/{agentId}/resutls/listen", server.Authenticate(
-		ServerSentEvents(http.HandlerFunc(server.ListenAndServeTaskResults)),
+	router.Handle("GET /agents/{agentId}/socket", server.Authenticate(
+		ServerSentEvents(http.HandlerFunc(server.AgentSocket)),
 	))
 
 	commonMiddleware := CreateStack(JsonContentType)

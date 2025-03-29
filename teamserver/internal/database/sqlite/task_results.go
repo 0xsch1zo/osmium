@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
@@ -23,7 +22,6 @@ func (trr *TaskResultsRepository) GetTaskResult(agentId uint64, taskId uint64) (
 	taskResultsSqlRow := trr.databaseHandle.QueryRow(query, agentId, taskId)
 	taskResult := teamserver.TaskResultOut{}
 	err := taskResultsSqlRow.Scan(&taskResult.Task, &taskResult.Output)
-	log.Print()
 	if err != nil {
 		return nil, err
 	}
