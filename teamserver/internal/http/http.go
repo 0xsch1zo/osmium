@@ -21,6 +21,7 @@ type Server struct {
 	TasksService         *service.TasksService
 	TaskResultsService   *service.TaskResultsService
 	AuthorizationService *service.AuthorizationService
+	EventLogService      *service.EventLogService
 }
 
 func NewServer(config *config.Config, db *database.Database) (*Server, error) {
@@ -30,6 +31,9 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 	tasksRepo := (*db).NewTasksRepository()
 	taskResultsRepo := (*db).NewTaskResultsRepository()
 	authRepo := (*db).NewAuthorizationRepository()
+	eventLogRepo := (*db).NewEventLogRepository()
+
+	eventLogService := service.NewEventLogService(*eventLogRepo)
 
 	server := Server{
 		mux: mux,
@@ -41,7 +45,8 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 		AgentService:         service.NewAgentService(*agentRepo),
 		TasksService:         service.NewTasksService(*tasksRepo, *agentRepo),
 		TaskResultsService:   service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *tasksRepo),
-		AuthorizationService: service.NewAuthorizationService(*authRepo, os.Getenv("JWT_SECRET")),
+		AuthorizationService: service.NewAuthorizationService(*authRepo, os.Getenv("JWT_SECRET"), eventLogService),
+		EventLogService:      eventLogService,
 	}
 
 	server.registerAgentApiRouter()
@@ -76,9 +81,8 @@ func (server *Server) registerAgentApiRouter() {
 	// user
 	router.Handle("POST /agents/{agentId}/tasks", server.Authenticate(http.HandlerFunc(server.AddTask)))
 	router.Handle("GET /agents/{agentId}/results/{taskId}", server.Authenticate(http.HandlerFunc(server.GetTaskResult)))
-	router.Handle("GET /agents/{agentId}/socket", server.Authenticate(
-		ServerSentEvents(http.HandlerFunc(server.AgentSocket)),
-	))
+	router.Handle("GET /agents/{agentId}/socket", server.Authenticate(http.HandlerFunc(server.AgentSocket)))
+	router.Handle("GET /eventLog", ServerSentEvents(http.HandlerFunc(server.EventLogListen)))
 
 	commonMiddleware := CreateStack(JsonContentType)
 	server.mux.Handle("/api/", commonMiddleware(http.StripPrefix("/api", router)))

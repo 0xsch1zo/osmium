@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -14,10 +15,8 @@ const (
 	errUnauthorized     = "Unauthorized"
 )
 
-func sendEventMessage(w http.ResponseWriter, message string) error {
-	_, err := w.Write([]byte(
-		`event: message
-data: ` + message + "\n"))
+func sendSSE(w http.ResponseWriter, messageType string, message string) error {
+	_, err := w.Write([]byte(fmt.Sprintf("event: %s\ndata: %s\n", messageType, message)))
 	return err
 }
 

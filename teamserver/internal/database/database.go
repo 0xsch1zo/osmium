@@ -10,6 +10,7 @@ type Database interface {
 	NewTasksRepository() *service.TasksRepository
 	NewTaskResultsRepository() *service.TaskResultsRepository
 	NewAuthorizationRepository() *service.AuthorizationRepository
+	NewEventLogRepository() *service.EventLogRepository
 }
 
 func NewDatabase(sourceString string) (*Database, error) {

@@ -32,7 +32,13 @@ func (server *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	homePage := templates.Dashboard(templates.AgentsView(agentsView))
+	eventLogView, err := server.EventLogService.GetEventLog()
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
+
+	homePage := templates.Dashboard(templates.AgentsView(agentsView), eventLogView)
 	err = homePage.Render(r.Context(), w)
 	if err != nil {
 		ApiErrorHandler(err, w)

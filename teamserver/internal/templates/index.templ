@@ -1,6 +1,6 @@
 package templates
 
-templ Dashboard(agentsView templ.Component) {
+templ Dashboard(agentsView templ.Component, eventLog []string) {
 <!DOCTYPE html>
 <html>
 
@@ -16,6 +16,9 @@ templ Dashboard(agentsView templ.Component) {
 
 <body>
     <div id="Dashboard">
+        <div id="EventLog">
+            @EventView(eventLog)
+        </div>
         <div id="Agents">
             @agentsView
         </div>

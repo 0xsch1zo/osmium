@@ -43,6 +43,11 @@ type AuthorizationRepository interface {
 	UsernameExists(username string) (bool, error)
 }
 
+type EventLogRepository interface {
+	LogEvent(event *teamserver.Event) error
+	GetEventLog() ([]teamserver.Event, error)
+}
+
 type AgentService struct {
 	agentRepository AgentRepository
 }
@@ -61,6 +66,12 @@ type TaskResultsService struct {
 type AuthorizationService struct {
 	jwtKey                  string
 	authorizationRepository AuthorizationRepository
+	eventLogService         *EventLogService
+}
+
+type EventLogService struct {
+	onEventLogged      []func()
+	eventLogRepository EventLogRepository
 }
 
 func NewAgentService(agentRepository AgentRepository) *AgentService {
@@ -88,9 +99,16 @@ func NewTaskResultsService(
 	}
 }
 
-func NewAuthorizationService(authorizationRepository AuthorizationRepository, jwtKey string) *AuthorizationService {
+func NewAuthorizationService(authorizationRepository AuthorizationRepository, jwtKey string, eventLogService *EventLogService) *AuthorizationService {
 	return &AuthorizationService{
 		jwtKey:                  jwtKey,
 		authorizationRepository: authorizationRepository,
+		eventLogService:         eventLogService,
+	}
+}
+
+func NewEventLogService(eventLogRepository EventLogRepository) *EventLogService {
+	return &EventLogService{
+		eventLogRepository: eventLogRepository,
 	}
 }

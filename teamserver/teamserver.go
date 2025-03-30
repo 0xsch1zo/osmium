@@ -47,6 +47,23 @@ type AuthToken struct {
 	Token      string
 	ExpiryTime time.Time
 }
+
+type EventType uint
+
+const (
+	Info EventType = iota
+	Warn
+	Error
+)
+
+type Event struct {
+	Type     EventType
+	Time     time.Time
+	Contents string
+}
+
+type EventListenerHandle int
+
 type ClientError struct {
 	Err string
 }

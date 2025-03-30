@@ -1,0 +1,11 @@
+package templates
+
+templ EventView(eventLog []string) {
+<table>
+    for _, event := range eventLog {
+    <tr>
+        <td>{ event }</td>
+    </tr>
+    }
+</table>
+}

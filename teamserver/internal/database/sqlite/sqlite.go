@@ -27,6 +27,10 @@ type AuthorizationRepository struct {
 	databaseHandle *sql.DB
 }
 
+type EventLogRepository struct {
+	databaseHandle *sql.DB
+}
+
 func (s *Sqlite) NewAgentRepository() *service.AgentRepository {
 	var a service.AgentRepository = &AgentRepository{
 		databaseHandle: s.databaseHandle,
@@ -53,6 +57,14 @@ func (s *Sqlite) NewAuthorizationRepository() *service.AuthorizationRepository {
 		databaseHandle: s.databaseHandle,
 	}
 	return &auth
+}
+
+func (s *Sqlite) NewEventLogRepository() *service.EventLogRepository {
+	var er service.EventLogRepository = &EventLogRepository{
+		databaseHandle: s.databaseHandle,
+	}
+
+	return &er
 }
 
 // Shitty code use migrations or something
@@ -90,6 +102,12 @@ CREATE TABLE IF NOT EXISTS Users(
     Username TEXT,
     PasswordHash TEXT,
     UNIQUE(Username)
+);
+
+CREATE TABLE IF NOT EXISTS EventLog(
+	Type INTEGER,
+	Time INTEGER,
+	Contents TEXT
 );`
 	_, err = databaseHandle.Exec(query)
 

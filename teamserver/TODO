@@ -2,3 +2,6 @@ properly check for errors after unmarshalling json
 change jwt signing algo
 add tests for bug in task results
 handle ctrl+c behaviour better
+wrong error handling in agent socket
+use sse on frontend
+tests for eventLog
