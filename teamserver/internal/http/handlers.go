@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/gorilla/websocket"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
@@ -30,4 +33,25 @@ func ApiErrorHandler(err error, w http.ResponseWriter) {
 	}
 
 	log.Print(err)
+}
+
+func SocketErrorHandler(err error, conn *websocket.Conn) {
+	target := &teamserver.ClientError{}
+
+	var message string
+	var code int
+	if errors.As(err, &target) {
+		code = websocket.ClosePolicyViolation
+		message = err.Error()
+	} else { // Default to internal
+		code = websocket.CloseInternalServerErr
+		message = "An internal server error has occured."
+	}
+
+	log.Print(err)
+	conn.WriteControl(
+		websocket.CloseMessage,
+		websocket.FormatCloseMessage(code, message),
+		time.Now().Add(1*time.Second),
+	)
 }

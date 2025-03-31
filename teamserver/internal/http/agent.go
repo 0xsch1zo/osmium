@@ -85,7 +85,7 @@ func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		ApiErrorHandler(err, w)
+		SocketErrorHandler(err, conn)
 		return
 	}
 
@@ -93,19 +93,20 @@ func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 		_, messageReader, err := conn.NextReader()
 		if err != nil {
 			log.Print(err)
+			SocketErrorHandler(err, conn)
 			return
 		}
 
 		var task api.AddTaskRequest
 		err = json.NewDecoder(messageReader).Decode(&task)
 		if err != nil {
-			ApiErrorHandler(err, w)
+			SocketErrorHandler(err, conn)
 			return
 		}
 
 		taskId, err := server.TasksService.AddTask(agentId, task.Task)
 		if err != nil {
-			ApiErrorHandler(err, w)
+			SocketErrorHandler(err, conn)
 			return
 		}
 
@@ -113,26 +114,26 @@ func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 		for !exists {
 			exists, err = server.TaskResultsService.TaskResultExists(agentId, taskId)
 			if err != nil {
-				ApiErrorHandler(err, w)
+				SocketErrorHandler(err, conn)
 				return
 			}
 		}
 
 		taskResult, err := server.TaskResultsService.GetTaskResult(agentId, taskId)
 		if err != nil {
-			ApiErrorHandler(err, w)
+			SocketErrorHandler(err, conn)
 			return
 		}
 
 		messageWriter, err := conn.NextWriter(websocket.TextMessage)
 		if err != nil {
-			ApiErrorHandler(err, w)
+			SocketErrorHandler(err, conn)
 			return
 		}
 
 		err = json.NewEncoder(messageWriter).Encode(taskResult)
 		if err != nil {
-			ApiErrorHandler(err, w)
+			SocketErrorHandler(err, conn)
 			return
 		}
 
