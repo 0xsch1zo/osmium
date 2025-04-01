@@ -11,6 +11,7 @@ import (
 
 func (s *Server) EventLogListen(w http.ResponseWriter, r *http.Request) {
 	wg := sync.WaitGroup{}
+	wg.Add(1)
 	s.EventLogService.AddEventLoggedListener(func() {
 		eventLog, err := s.EventLogService.GetEventLog()
 		if err != nil {
@@ -23,7 +24,6 @@ func (s *Server) EventLogListen(w http.ResponseWriter, r *http.Request) {
 		templates.EventView(eventLog).Render(r.Context(), &buf)
 		sendSSE(w, "eventLogView", buf.String())
 	})
-	wg.Add(1)
 
 	wg.Wait()
 }

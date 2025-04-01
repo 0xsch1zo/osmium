@@ -1,8 +1,8 @@
 package service
 
 import (
-	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
@@ -14,10 +14,14 @@ func (es *EventLogService) LogEvent(event *teamserver.Event) error {
 		return err
 	}
 
-	log.Print("herer")
+	wg := sync.WaitGroup{}
+	wg.Add(len(es.onEventLogged))
 	for _, listener := range es.onEventLogged {
 		if listener != nil {
-			listener()
+			go func() {
+				listener()
+				wg.Done()
+			}()
 		}
 	}
 

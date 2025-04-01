@@ -52,6 +52,8 @@ func (auths *AuthorizationService) Login(username, password string) (*teamserver
 		return nil, err
 	}
 
+	auths.eventLogService.LogEvent(&teamserver.Event{Type: teamserver.Info, Time: time.Now(), Contents: "Logged in"})
+
 	return &teamserver.AuthToken{
 		Token:      token,
 		ExpiryTime: expiryTime,
