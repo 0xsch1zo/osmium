@@ -31,6 +31,12 @@ func ServerSentEvents(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
+		f, ok := w.(http.Flusher)
+		if !ok {
+			ApiErrorHandler(errors.New(errFailedFlushSse), w)
+		}
+
+		f.Flush()
 		next.ServeHTTP(w, r)
 	})
 }

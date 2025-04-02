@@ -16,10 +16,17 @@ import (
 const (
 	errSerializationFmt = "Failed to serialize register response with: %w"
 	errUnauthorized     = "Unauthorized"
+	errFailedFlushSse   = "Failed to flush sse headers"
 )
 
 func sendSSE(w http.ResponseWriter, messageType string, message string) error {
 	_, err := w.Write([]byte(fmt.Sprintf("event: %s\ndata: %s\n", messageType, message)))
+	f, ok := w.(http.Flusher)
+	if !ok {
+		ApiErrorHandler(errors.New(errFailedFlushSse), w)
+	}
+
+	f.Flush()
 	return err
 }
 
