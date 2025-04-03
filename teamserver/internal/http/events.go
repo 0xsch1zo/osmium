@@ -2,27 +2,20 @@ package http
 
 import (
 	"bytes"
-	"log"
 	"net/http"
 	"sync"
 
+	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/templates"
 )
 
 func (s *Server) EventLogListen(w http.ResponseWriter, r *http.Request) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	s.EventLogService.AddEventLoggedListener(func() {
-		eventLog, err := s.EventLogService.GetEventLog()
-		if err != nil {
-			sendSSE(w, "error", "An error occured, Couldn't retrieve the event log")
-			log.Print(err)
-			return
-		}
-
+	s.EventLogService.AddOnEventLoggedCallback(func(event *teamserver.Event) {
 		buf := bytes.Buffer{}
-		templates.EventView(eventLog).Render(r.Context(), &buf)
-		sendSSE(w, "eventLogView", buf.String())
+		templates.Event(s.EventLogService.FormatEvent(event)).Render(r.Context(), &buf)
+		sendSSE(w, "event", buf.String())
 	})
 
 	wg.Wait()
