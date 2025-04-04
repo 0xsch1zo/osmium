@@ -70,8 +70,8 @@ type AuthorizationService struct {
 }
 
 type EventLogService struct {
-	onEventLogged      []func()
-	eventLogRepository EventLogRepository
+	onEventLoggedCallbacks []func(event *teamserver.Event)
+	eventLogRepository     EventLogRepository
 }
 
 func NewAgentService(agentRepository AgentRepository) *AgentService {

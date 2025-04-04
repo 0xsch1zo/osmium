@@ -2,7 +2,5 @@ properly check for errors after unmarshalling json
 change jwt signing algo
 add tests for bug in task results
 handle ctrl+c behaviour better
-use sse on frontend
 tests for eventLog
-don't send whole event log
-change LogEvent interface because it's stupid
+limit password length to prevent ddos

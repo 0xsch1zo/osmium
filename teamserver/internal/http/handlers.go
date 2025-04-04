@@ -20,7 +20,7 @@ const (
 )
 
 func sendSSE(w http.ResponseWriter, messageType string, message string) error {
-	_, err := w.Write([]byte(fmt.Sprintf("event: %s\ndata: %s\n", messageType, message)))
+	_, err := w.Write([]byte(fmt.Sprintf("event: %s\ndata: %s\n\n", messageType, message)))
 	f, ok := w.(http.Flusher)
 	if !ok {
 		ApiErrorHandler(errors.New(errFailedFlushSse), w)
