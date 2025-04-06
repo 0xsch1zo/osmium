@@ -4,18 +4,34 @@ import "github.com/sentientbottleofwine/osmium/teamserver"
 import "strconv"
 
 templ AgentsView(agents []teamserver.AgentView) {
+<div id="agent-dummy" hx-ext="sse" sse-connect="/api/agents/register/listen" sse-swap="agent" hx-swap="none"></div>
 <h1>Agents</h1>
 <table>
-    <tr>
-        <th>Agent Id</th>
-    </tr>
-    for _, agent := range agents {
+    <thead>
+        <tr>
+            <th>Agent Id</th>
+        </tr>
+    </thead>
+    <tbody id="agent-list-body">
+        for _, agent := range agents {
+        <tr class="agent">
+            <td>{ strconv.FormatUint(agent.AgentId, 10) }</td>
+            <td class="revealOnHover">
+                <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+}
+
+templ AgentOOB(agent *teamserver.Agent) {
+<tbody hx-swap-oob="beforeend:#agent-list-body">
     <tr class="agent">
         <td>{ strconv.FormatUint(agent.AgentId, 10) }</td>
         <td class="revealOnHover">
             <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
         </td>
     </tr>
-    }
-</table>
+</tbody>
 }

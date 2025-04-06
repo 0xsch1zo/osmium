@@ -4,3 +4,7 @@ add tests for bug in task results
 handle ctrl+c behaviour better
 tests for eventLog
 limit password length to prevent ddos
+rewrite task results to callbacks
+add mutexes to callbacks or something to prevent from race conditions 
+remove callbacks when necessary
+authenticate the listener connections

@@ -13,7 +13,7 @@ templ EventsView(eventLog []string) {
 </table>
 }
 
-templ Event(event string) {
+templ EventOOB(event string) {
 <tbody hx-swap-oob="beforeend:#event-log-body">
     <tr>
         <td>{ event }</td>

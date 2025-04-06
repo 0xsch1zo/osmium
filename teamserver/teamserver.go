@@ -62,7 +62,7 @@ type Event struct {
 	Contents string
 }
 
-type EventListenerHandle int
+type CallbackHandle int
 
 type ClientError struct {
 	Err string

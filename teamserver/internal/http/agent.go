@@ -1,14 +1,19 @@
 package http
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/gorilla/websocket"
+
+	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/api"
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/templates"
 )
 
 func (server *Server) AgentRegister(w http.ResponseWriter, r *http.Request) {
@@ -139,4 +144,16 @@ func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 
 		messageWriter.Close()
 	}
+}
+
+func (s *Server) AddAgentListen(w http.ResponseWriter, r *http.Request) {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	s.AgentService.AddOnAgentAddedCallback(func(agent *teamserver.Agent) {
+		buf := bytes.Buffer{}
+		templates.AgentOOB(agent).Render(r.Context(), &buf)
+		sendSSE(w, "agent", buf.String())
+	})
+
+	wg.Wait()
 }

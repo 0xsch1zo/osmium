@@ -14,7 +14,7 @@ func (s *Server) EventLogListen(w http.ResponseWriter, r *http.Request) {
 	wg.Add(1)
 	s.EventLogService.AddOnEventLoggedCallback(func(event *teamserver.Event) {
 		buf := bytes.Buffer{}
-		templates.Event(s.EventLogService.FormatEvent(event)).Render(r.Context(), &buf)
+		templates.EventOOB(s.EventLogService.FormatEvent(event)).Render(r.Context(), &buf)
 		sendSSE(w, "event", buf.String())
 	})
 

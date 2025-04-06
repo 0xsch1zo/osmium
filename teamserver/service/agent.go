@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
@@ -16,6 +17,17 @@ func (as *AgentService) AddAgent() (*teamserver.Agent, error) {
 	agent, err := as.agentRepository.AddAgent(rsaPriv)
 	if err != nil {
 		return nil, err
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(as.callbacks))
+	for _, listener := range as.callbacks {
+		if listener != nil {
+			go func() {
+				listener(agent)
+				wg.Done()
+			}()
+		}
 	}
 
 	return agent, nil
@@ -49,4 +61,18 @@ func (as *AgentService) ListAgents() ([]teamserver.AgentView, error) {
 		return nil, err
 	}
 	return agentViews, nil
+}
+
+func (as *AgentService) AddOnAgentAddedCallback(callback func(*teamserver.Agent)) teamserver.CallbackHandle {
+	as.callbacks = append(as.callbacks, callback)
+	return teamserver.CallbackHandle(len(as.callbacks) - 1)
+}
+
+func (as *AgentService) RemoveOnAgentAddedCallback(handle teamserver.CallbackHandle) {
+	for i := range as.callbacks {
+		if teamserver.CallbackHandle(i) == handle {
+			as.callbacks[i] = nil
+			break
+		}
+	}
 }

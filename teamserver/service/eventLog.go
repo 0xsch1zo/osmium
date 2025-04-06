@@ -16,8 +16,8 @@ func (es *EventLogService) LogEvent(eventType teamserver.EventType, text string)
 	}
 
 	wg := sync.WaitGroup{}
-	wg.Add(len(es.onEventLoggedCallbacks))
-	for _, listener := range es.onEventLoggedCallbacks {
+	wg.Add(len(es.callbacks))
+	for _, listener := range es.callbacks {
 		if listener != nil {
 			go func() {
 				listener(event)
@@ -64,15 +64,16 @@ func (es *EventLogService) FormatEvent(event *teamserver.Event) string {
 	return eventFormatBuilder.String()
 }
 
-func (es *EventLogService) AddOnEventLoggedCallback(listener func(event *teamserver.Event)) teamserver.EventListenerHandle {
-	es.onEventLoggedCallbacks = append(es.onEventLoggedCallbacks, listener)
-	return teamserver.EventListenerHandle(len(es.onEventLoggedCallbacks) - 1)
+func (es *EventLogService) AddOnEventLoggedCallback(listener func(event *teamserver.Event)) teamserver.CallbackHandle {
+	es.callbacks = append(es.callbacks, listener)
+	return teamserver.CallbackHandle(len(es.callbacks) - 1)
 }
 
-func (es *EventLogService) RemoveOnEventLoggedCallback(listenerHandle teamserver.EventListenerHandle) {
-	for i := range es.onEventLoggedCallbacks {
-		if teamserver.EventListenerHandle(i) == listenerHandle {
-			es.onEventLoggedCallbacks[i] = nil // Deleting the element would cause handles to be invalid
+func (es *EventLogService) RemoveOnEventLoggedCallback(listenerHandle teamserver.CallbackHandle) {
+	for i := range es.callbacks {
+		if teamserver.CallbackHandle(i) == listenerHandle {
+			es.callbacks[i] = nil // Deleting the element would cause handles to be invalid
+			break
 		}
 	}
 }

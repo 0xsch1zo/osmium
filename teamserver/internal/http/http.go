@@ -83,6 +83,7 @@ func (server *Server) registerAgentApiRouter() {
 	router.Handle("GET /agents/{agentId}/results/{taskId}", server.Authenticate(http.HandlerFunc(server.GetTaskResult)))
 	router.Handle("GET /agents/{agentId}/socket", server.Authenticate(http.HandlerFunc(server.AgentSocket)))
 	router.Handle("GET /eventLog", ServerSentEvents(http.HandlerFunc(server.EventLogListen)))
+	router.Handle("GET /agents/register/listen", ServerSentEvents(http.HandlerFunc(server.AddAgentListen)))
 
 	commonMiddleware := CreateStack(JsonContentType)
 	server.mux.Handle("/api/", commonMiddleware(http.StripPrefix("/api", router)))
