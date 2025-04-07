@@ -7,4 +7,3 @@ limit password length to prevent ddos
 rewrite task results to callbacks
 add mutexes to callbacks or something to prevent from race conditions 
 remove callbacks when necessary
-authenticate the listener connections
