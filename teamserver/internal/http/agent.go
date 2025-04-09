@@ -149,10 +149,17 @@ func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 func (s *Server) AddAgentListen(w http.ResponseWriter, r *http.Request) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	s.AgentService.AddOnAgentAddedCallback(func(agent *teamserver.Agent) {
+	s.AgentService.AddOnAgentAddedCallback(func(agent teamserver.Agent) {
 		buf := bytes.Buffer{}
-		templates.AgentOOB(agent).Render(r.Context(), &buf)
-		sendSSE(w, "agent", buf.String())
+		err := templates.AgentOOB(&agent).Render(r.Context(), &buf)
+		if err != nil {
+			log.Print(err)
+		}
+
+		err = sendSSE(w, "agent", buf.String())
+		if err != nil {
+			log.Print(err)
+		}
 	})
 
 	wg.Wait()

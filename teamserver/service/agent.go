@@ -24,7 +24,7 @@ func (as *AgentService) AddAgent() (*teamserver.Agent, error) {
 	for _, listener := range as.callbacks {
 		if listener != nil {
 			go func() {
-				listener(agent)
+				listener(*agent)
 				wg.Done()
 			}()
 		}
@@ -63,7 +63,7 @@ func (as *AgentService) ListAgents() ([]teamserver.AgentView, error) {
 	return agentViews, nil
 }
 
-func (as *AgentService) AddOnAgentAddedCallback(callback func(*teamserver.Agent)) teamserver.CallbackHandle {
+func (as *AgentService) AddOnAgentAddedCallback(callback func(teamserver.Agent)) teamserver.CallbackHandle {
 	as.callbacks = append(as.callbacks, callback)
 	return teamserver.CallbackHandle(len(as.callbacks) - 1)
 }

@@ -50,7 +50,7 @@ type EventLogRepository interface {
 
 type AgentService struct {
 	agentRepository AgentRepository
-	callbacks       []func(*teamserver.Agent)
+	callbacks       []func(teamserver.Agent)
 }
 
 type TasksService struct {
@@ -71,7 +71,7 @@ type AuthorizationService struct {
 }
 
 type EventLogService struct {
-	callbacks          []func(*teamserver.Event)
+	callbacks          []func(teamserver.Event)
 	eventLogRepository EventLogRepository
 }
 

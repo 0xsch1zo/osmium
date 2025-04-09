@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"log"
 	"net/http"
 	"sync"
 
@@ -12,10 +13,17 @@ import (
 func (s *Server) EventLogListen(w http.ResponseWriter, r *http.Request) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	s.EventLogService.AddOnEventLoggedCallback(func(event *teamserver.Event) {
+	s.EventLogService.AddOnEventLoggedCallback(func(event teamserver.Event) {
 		buf := bytes.Buffer{}
-		templates.EventOOB(s.EventLogService.FormatEvent(event)).Render(r.Context(), &buf)
-		sendSSE(w, "event", buf.String())
+		err := templates.EventOOB(s.EventLogService.FormatEvent(&event)).Render(r.Context(), &buf)
+		if err != nil {
+			log.Print(err)
+
+		}
+		err = sendSSE(w, "event", buf.String())
+		if err != nil {
+			log.Print(err)
+		}
 	})
 
 	wg.Wait()

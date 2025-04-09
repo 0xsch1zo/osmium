@@ -20,7 +20,8 @@ func (es *EventLogService) LogEvent(eventType teamserver.EventType, text string)
 	for _, listener := range es.callbacks {
 		if listener != nil {
 			go func() {
-				listener(event)
+				// Why the hell in go you can't pass by const-reference. WTF
+				listener(*event)
 				wg.Done()
 			}()
 		}
@@ -64,7 +65,7 @@ func (es *EventLogService) FormatEvent(event *teamserver.Event) string {
 	return eventFormatBuilder.String()
 }
 
-func (es *EventLogService) AddOnEventLoggedCallback(listener func(event *teamserver.Event)) teamserver.CallbackHandle {
+func (es *EventLogService) AddOnEventLoggedCallback(listener func(event teamserver.Event)) teamserver.CallbackHandle {
 	es.callbacks = append(es.callbacks, listener)
 	return teamserver.CallbackHandle(len(es.callbacks) - 1)
 }
