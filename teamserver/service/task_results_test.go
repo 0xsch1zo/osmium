@@ -29,23 +29,24 @@ func TestSaveAndGetTaskResults(t *testing.T) {
 	}
 
 	const testTask = "test task"
-	validTaskIdFirst, err := testedServices.tasksService.AddTask(validAgent.AgentId, testTask)
+	validTaskIds := make([]uint64, 2)
+	validTaskIds[0], err = testedServices.tasksService.AddTask(validAgent.AgentId, testTask)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	validTaskIdSecond, err := testedServices.tasksService.AddTask(validAgent.AgentId, testTask)
+	validTaskIds[1], err = testedServices.tasksService.AddTask(validAgent.AgentId, testTask)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	given := []saveTaskResutlsTestCase{
 		// Success
-		{validAgent.AgentId, teamserver.TaskResultIn{TaskId: validTaskIdFirst, Output: "some output"}},
-		{validAgent.AgentId, teamserver.TaskResultIn{TaskId: validTaskIdSecond, Output: "some output"}},
+		{validAgent.AgentId, teamserver.TaskResultIn{TaskId: validTaskIds[0], Output: "some output"}},
+		{validAgent.AgentId, teamserver.TaskResultIn{TaskId: validTaskIds[1], Output: "some output"}},
 
 		// Failure
-		{2137, teamserver.TaskResultIn{TaskId: validTaskIdFirst, Output: "some output"}},
+		{2137, teamserver.TaskResultIn{TaskId: validTaskIds[0], Output: "some output"}},
 		{validAgent.AgentId, teamserver.TaskResultIn{TaskId: 2137, Output: "some output"}},
 		{2137, teamserver.TaskResultIn{TaskId: 2137, Output: "some output"}},
 	}
@@ -64,21 +65,16 @@ func TestSaveAndGetTaskResults(t *testing.T) {
 		}
 
 		if taskResult.Output != given[testCaseIndex].taskResultsIn.Output ||
-			taskResult.TaskId != validTaskIdFirst ||
+			taskResult.TaskId != validTaskIds[testCaseIndex] ||
 			taskResult.Task != testTask {
 			fatalErrUnexpectedData(t, "Task result data doesn't match", struct {
 				output string
 				taskId uint64
 				task   string
-			}{given[testCaseIndex].taskResultsIn.Output, validTaskIdFirst, testTask}, taskResult)
+			}{given[testCaseIndex].taskResultsIn.Output, validTaskIds[testCaseIndex], testTask}, taskResult)
 		}
 
 		testCaseIndex++
-	}
-
-	err = testedServices.taskResultsService.SaveTaskResult(given[testCaseIndex].agent, &given[testCaseIndex].taskResultsIn)
-	if err != nil {
-		t.Fatal(err)
 	}
 
 	for ; testCaseIndex < len(given); testCaseIndex++ {
