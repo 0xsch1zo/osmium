@@ -14,6 +14,7 @@ type testedServices struct {
 	tasksService         *service.TasksService
 	taskResultsService   *service.TaskResultsService
 	authorizationService *service.AuthorizationService
+	eventLogService      *service.EventLogService
 }
 
 func newTestedServices() (*testedServices, error) {
@@ -33,6 +34,7 @@ func newTestedServices() (*testedServices, error) {
 		tasksService:         service.NewTasksService(*taskQueueRepo, *agentRepo),
 		taskResultsService:   service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *taskQueueRepo),
 		authorizationService: service.NewAuthorizationService(*authorizationRepo, testingJwtKey, eventLogService),
+		eventLogService:      eventLogService,
 	}, nil
 }
 
