@@ -2,7 +2,6 @@ package service
 
 import (
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
@@ -15,15 +14,10 @@ func (es *EventLogService) LogEvent(eventType teamserver.EventType, text string)
 		return err
 	}
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(es.callbacks))
 	for _, listener := range es.callbacks {
 		if listener != nil {
-			go func() {
-				// Why the hell in go you can't pass by const-reference. WTF
-				listener(*event)
-				wg.Done()
-			}()
+			// Why the hell in go you can't pass by const-reference. WTF
+			go listener(*event)
 		}
 	}
 
