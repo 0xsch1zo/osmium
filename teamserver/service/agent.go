@@ -30,6 +30,11 @@ func (as *AgentService) AddAgent() (*teamserver.Agent, error) {
 		}
 	}
 
+	as.eventLogService.LogEvent(
+		teamserver.Info,
+		fmt.Sprintf("Agent registered\n>> AgentId: %d", agent.AgentId),
+	)
+
 	return agent, nil
 }
 

@@ -97,7 +97,6 @@ func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, messageReader, err := conn.NextReader()
 		if err != nil {
-			log.Print(err)
 			SocketErrorHandler(err, conn)
 			return
 		}

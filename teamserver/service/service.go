@@ -50,17 +50,20 @@ type EventLogRepository interface {
 
 type AgentService struct {
 	agentRepository AgentRepository
+	eventLogService *EventLogService
 	callbacks       []func(teamserver.Agent)
 }
 
 type TasksService struct {
 	agentService    *AgentService
+	eventLogService *EventLogService
 	tasksRepository TasksRepository
 }
 
 type TaskResultsService struct {
 	agentService          *AgentService
 	tasksService          *TasksService
+	eventLogService       *EventLogService
 	taskResultsRepository TaskResultsRepository
 	callbacks             []func(agentId uint64, result teamserver.TaskResultIn)
 }
@@ -76,41 +79,49 @@ type EventLogService struct {
 	eventLogRepository EventLogRepository
 }
 
-func NewAgentService(agentRepository AgentRepository) *AgentService {
+func NewAgentService(agentRepository *AgentRepository, eventLogService *EventLogService) *AgentService {
 	return &AgentService{
-		agentRepository: agentRepository,
+		agentRepository: *agentRepository,
+		eventLogService: eventLogService,
 	}
 }
 
-func NewTasksService(tasksRepository TasksRepository, agentRepository AgentRepository) *TasksService {
+func NewTasksService(tasksRepository *TasksRepository, agentRepository *AgentRepository, eventLogService *EventLogService) *TasksService {
 	return &TasksService{
-		agentService:    NewAgentService(agentRepository),
-		tasksRepository: tasksRepository,
+		agentService:    NewAgentService(agentRepository, eventLogService),
+		tasksRepository: *tasksRepository,
+		eventLogService: eventLogService,
 	}
 }
 
 func NewTaskResultsService(
-	taskResultsRepository TaskResultsRepository,
-	agentRepository AgentRepository,
-	tasksRepository TasksRepository,
+	taskResultsRepository *TaskResultsRepository,
+	agentRepository *AgentRepository,
+	tasksRepository *TasksRepository,
+	eventLogService *EventLogService,
 ) *TaskResultsService {
 	return &TaskResultsService{
-		agentService:          NewAgentService(agentRepository),
-		tasksService:          NewTasksService(tasksRepository, agentRepository),
-		taskResultsRepository: taskResultsRepository,
+		agentService:          NewAgentService(agentRepository, eventLogService),
+		tasksService:          NewTasksService(tasksRepository, agentRepository, eventLogService),
+		taskResultsRepository: *taskResultsRepository,
+		eventLogService:       eventLogService,
 	}
 }
 
-func NewAuthorizationService(authorizationRepository AuthorizationRepository, jwtKey string, eventLogService *EventLogService) *AuthorizationService {
+func NewAuthorizationService(
+	authorizationRepository *AuthorizationRepository,
+	jwtKey string,
+	eventLogService *EventLogService,
+) *AuthorizationService {
 	return &AuthorizationService{
 		jwtKey:                  jwtKey,
-		authorizationRepository: authorizationRepository,
+		authorizationRepository: *authorizationRepository,
 		eventLogService:         eventLogService,
 	}
 }
 
-func NewEventLogService(eventLogRepository EventLogRepository) *EventLogService {
+func NewEventLogService(eventLogRepository *EventLogRepository) *EventLogService {
 	return &EventLogService{
-		eventLogRepository: eventLogRepository,
+		eventLogRepository: *eventLogRepository,
 	}
 }

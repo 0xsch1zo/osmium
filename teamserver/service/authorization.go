@@ -43,6 +43,7 @@ func (auths *AuthorizationService) Login(username, password string) (*teamserver
 	}
 
 	if !match {
+		auths.eventLogService.LogEvent(teamserver.Warn, "Unsuccessful login")
 		return nil, teamserver.NewClientError(errInvalidCredentials)
 	}
 
@@ -52,6 +53,7 @@ func (auths *AuthorizationService) Login(username, password string) (*teamserver
 		return nil, err
 	}
 
+	auths.eventLogService.LogEvent(teamserver.Info, "Successful login")
 	return &teamserver.AuthToken{
 		Token:      token,
 		ExpiryTime: expiryTime,
@@ -61,10 +63,12 @@ func (auths *AuthorizationService) Login(username, password string) (*teamserver
 func (auths *AuthorizationService) Authorize(token string) error {
 	authorized, err := tools.VerifyJWT(token, auths.jwtKey)
 	if err != nil {
+		auths.eventLogService.LogEvent(teamserver.Warn, "Unauthorized request was made")
 		return teamserver.NewClientError(err.Error())
 	}
 
 	if !authorized {
+		auths.eventLogService.LogEvent(teamserver.Warn, "Unauthorized request was made")
 		return teamserver.NewClientError(errInvalidCredentials)
 	}
 

@@ -13,6 +13,12 @@ func (ts *TasksService) AddTask(agentId uint64, task string) (uint64, error) {
 	}
 
 	taskId, err := ts.tasksRepository.AddTask(agentId, task)
+
+	ts.eventLogService.LogEvent(
+		teamserver.Info,
+		fmt.Sprintf("Task was assigned for agent %d", agentId),
+	)
+
 	return taskId, err
 }
 

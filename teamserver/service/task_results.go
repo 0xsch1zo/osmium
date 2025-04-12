@@ -32,6 +32,9 @@ func (trs *TaskResultsService) SaveTaskResult(agentId uint64, taskResult *teamse
 		}
 	}
 
+	trs.eventLogService.LogEvent(
+		teamserver.Info,
+		fmt.Sprintf("A task result was recieved from agent %d", agentId))
 	return nil
 }
 

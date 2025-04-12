@@ -3,3 +3,5 @@ change jwt signing algo
 handle ctrl+c behaviour better
 limit password length to prevent ddos
 remove callbacks when necessary
+add abiblity to view task results when the agent socket is not open
+FIX THE GODDAMN ERROR HANDLING

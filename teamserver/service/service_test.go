@@ -27,13 +27,13 @@ func newTestedServices() (*testedServices, error) {
 	taskQueueRepo := (*database).NewTasksRepository()
 	taskResultsRepo := (*database).NewTaskResultsRepository()
 	authorizationRepo := (*database).NewAuthorizationRepository()
-	eventLogService := service.NewEventLogService(*(*database).NewEventLogRepository())
+	eventLogService := service.NewEventLogService((*database).NewEventLogRepository())
 
 	return &testedServices{
-		agentService:         service.NewAgentService(*agentRepo),
-		tasksService:         service.NewTasksService(*taskQueueRepo, *agentRepo),
-		taskResultsService:   service.NewTaskResultsService(*taskResultsRepo, *agentRepo, *taskQueueRepo),
-		authorizationService: service.NewAuthorizationService(*authorizationRepo, testingJwtKey, eventLogService),
+		agentService:         service.NewAgentService(agentRepo, eventLogService),
+		tasksService:         service.NewTasksService(taskQueueRepo, agentRepo, eventLogService),
+		taskResultsService:   service.NewTaskResultsService(taskResultsRepo, agentRepo, taskQueueRepo, eventLogService),
+		authorizationService: service.NewAuthorizationService(authorizationRepo, testingJwtKey, eventLogService),
 		eventLogService:      eventLogService,
 	}, nil
 }
