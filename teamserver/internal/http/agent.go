@@ -115,14 +115,15 @@ func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var exists bool
-		for !exists {
-			exists, err = server.TaskResultsService.TaskResultExists(agentId, taskId)
-			if err != nil {
-				SocketErrorHandler(err, conn)
-				return
+		// Waiting for task result to be added
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		_ = server.TaskResultsService.AddOnTaskResultSavedCallback(func(agentSaved uint64, result teamserver.TaskResultIn) {
+			if agentId == agentSaved && taskId == result.TaskId {
+				wg.Done()
 			}
-		}
+		})
+		wg.Wait()
 
 		taskResult, err := server.TaskResultsService.GetTaskResult(agentId, taskId)
 		if err != nil {

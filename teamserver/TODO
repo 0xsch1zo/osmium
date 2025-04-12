@@ -2,5 +2,4 @@ properly check for errors after unmarshalling json
 change jwt signing algo
 handle ctrl+c behaviour better
 limit password length to prevent ddos
-rewrite task results to callbacks
 remove callbacks when necessary

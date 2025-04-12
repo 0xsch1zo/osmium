@@ -26,6 +26,12 @@ func (trs *TaskResultsService) SaveTaskResult(agentId uint64, taskResult *teamse
 		return err
 	}
 
+	for _, callback := range trs.callbacks {
+		if callback != nil {
+			go callback(agentId, *taskResult)
+		}
+	}
+
 	return nil
 }
 
@@ -61,4 +67,17 @@ func (trs *TaskResultsService) TaskResultExists(agentId, taskId uint64) (bool, e
 
 	exists, err := trs.taskResultsRepository.TaskResultExists(agentId, taskId)
 	return exists, err
+}
+
+func (trs *TaskResultsService) AddOnTaskResultSavedCallback(listener func(agentId uint64, result teamserver.TaskResultIn)) teamserver.CallbackHandle {
+	trs.callbacks = append(trs.callbacks, listener)
+	return teamserver.CallbackHandle(len(trs.callbacks) - 1)
+}
+
+func (trs *TaskResultsService) RemoveOnTaskResultSavedCallback(listenerHandle teamserver.CallbackHandle) {
+	for i := range trs.callbacks {
+		if teamserver.CallbackHandle(i) == listenerHandle {
+			trs.callbacks[i] = nil
+		}
+	}
 }

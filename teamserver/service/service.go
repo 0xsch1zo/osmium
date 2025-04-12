@@ -62,6 +62,7 @@ type TaskResultsService struct {
 	agentService          *AgentService
 	tasksService          *TasksService
 	taskResultsRepository TaskResultsRepository
+	callbacks             []func(agentId uint64, result teamserver.TaskResultIn)
 }
 
 type AuthorizationService struct {
