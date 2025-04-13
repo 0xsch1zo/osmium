@@ -19,7 +19,7 @@ import (
 func (server *Server) AgentRegister(w http.ResponseWriter, r *http.Request) {
 	agent, err := server.AgentService.AddAgent()
 	if err != nil {
-		ApiErrorHandler(fmt.Errorf("Failed to add agent: %w", err), w)
+		ApiErrorHandler(err, w)
 		return
 	}
 
@@ -39,14 +39,13 @@ func (server *Server) AgentRegister(w http.ResponseWriter, r *http.Request) {
 func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
 	if err != nil {
-		api.RequestErrorHandler(w, err) // Clients error
-		log.Print(err)
+		api.RequestErrorHandler(w, err, http.StatusBadRequest) // Clients error
 		return
 	}
 
 	tasks, err := server.TasksService.GetTasks(agentId)
 	if err != nil {
-		ApiErrorHandler(fmt.Errorf("Failed to get tasks for agent: %d - %w", agentId, err), w)
+		ApiErrorHandler(err, w)
 		return
 	}
 
@@ -62,20 +61,20 @@ func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 func (server *Server) AddTask(w http.ResponseWriter, r *http.Request) {
 	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
 	if err != nil {
-		api.RequestErrorHandler(w, err)
+		api.RequestErrorHandler(w, err, http.StatusBadRequest)
 		return
 	}
 
 	var addTaskReq api.AddTaskRequest
 	err = json.NewDecoder(r.Body).Decode(&addTaskReq)
 	if err != nil {
-		api.RequestErrorHandler(w, err)
+		api.RequestErrorHandler(w, err, http.StatusBadRequest)
 		return
 	}
 
 	_, err = server.TasksService.AddTask(agentId, addTaskReq.Task)
 	if err != nil {
-		ApiErrorHandler(fmt.Errorf("Failed to push to task queue with: %w", err), w)
+		ApiErrorHandler(err, w)
 		return
 	}
 }
@@ -83,7 +82,7 @@ func (server *Server) AddTask(w http.ResponseWriter, r *http.Request) {
 func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
 	if err != nil {
-		api.RequestErrorHandler(w, err)
+		api.RequestErrorHandler(w, err, http.StatusBadRequest)
 		return
 	}
 

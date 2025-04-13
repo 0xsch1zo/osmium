@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
@@ -13,11 +14,12 @@ func (trs *TaskResultsService) SaveTaskResult(agentId uint64, taskResult *teamse
 	}
 
 	if exists {
-		return teamserver.NewClientError(fmt.Sprintf(errAlreadyExistsFmt, "Task Result"))
+		return teamserver.NewClientError(fmt.Sprintf(errAlreadyExistsFmt, "Task Result"), http.StatusConflict)
 	}
 
 	err = trs.taskResultsRepository.SaveTaskResult(agentId, taskResult)
 	if err != nil {
+		ServiceServerErrHandler(err, taskResultsServiceStr, trs.eventLogService)
 		return err
 	}
 
@@ -35,6 +37,7 @@ func (trs *TaskResultsService) SaveTaskResult(agentId uint64, taskResult *teamse
 	trs.eventLogService.LogEvent(
 		teamserver.Info,
 		fmt.Sprintf("A task result was recieved from agent %d", agentId))
+
 	return nil
 }
 
@@ -51,6 +54,7 @@ func (trs *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*te
 
 	taskResult, err := trs.taskResultsRepository.GetTaskResult(agentId, taskId)
 	if err != nil {
+		ServiceServerErrHandler(err, taskResultsServiceStr, trs.eventLogService)
 		return nil, err
 	}
 
@@ -69,7 +73,11 @@ func (trs *TaskResultsService) TaskResultExists(agentId, taskId uint64) (bool, e
 	}
 
 	exists, err := trs.taskResultsRepository.TaskResultExists(agentId, taskId)
-	return exists, err
+	if err != nil {
+		ServiceServerErrHandler(err, taskResultsServiceStr, trs.eventLogService)
+		return false, err
+	}
+	return exists, nil
 }
 
 func (trs *TaskResultsService) AddOnTaskResultSavedCallback(listener func(agentId uint64, result teamserver.TaskResultIn)) teamserver.CallbackHandle {

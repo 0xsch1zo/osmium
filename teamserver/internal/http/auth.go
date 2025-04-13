@@ -19,7 +19,7 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 	username := r.Form["username"]
 	password := r.Form["password"]
 	if len(username) == 0 || len(password) == 0 {
-		api.RequestErrorHandler(w, errors.New(errUnauthorized))
+		api.RequestErrorHandler(w, errors.New(errUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
@@ -53,7 +53,7 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 func (server *Server) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	token, err := r.Cookie("token")
 	if err == http.ErrNoCookie {
-		api.RequestErrorHandler(w, errors.New(errUnauthorized))
+		api.RequestErrorHandler(w, errors.New(errUnauthorized), http.StatusUnauthorized)
 		return
 	}
 

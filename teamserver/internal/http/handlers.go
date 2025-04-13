@@ -34,7 +34,12 @@ func ApiErrorHandler(err error, w http.ResponseWriter) {
 	target := &teamserver.ClientError{}
 
 	if errors.As(err, &target) {
-		api.RequestErrorHandler(w, err)
+		cerr, ok := err.(*teamserver.ClientError)
+		if ok {
+			api.RequestErrorHandler(w, err, cerr.StatusCode)
+		} else {
+			api.RequestErrorHandler(w, err, http.StatusBadRequest)
+		}
 	} else { // Default to internal
 		api.InternalErrorHandler(w)
 	}
@@ -44,7 +49,6 @@ func ApiErrorHandler(err error, w http.ResponseWriter) {
 
 func SocketErrorHandler(err error, conn *websocket.Conn) {
 	target := &teamserver.ClientError{}
-
 	var message string
 	var code int
 	if errors.As(err, &target) {
@@ -55,10 +59,12 @@ func SocketErrorHandler(err error, conn *websocket.Conn) {
 		message = "An internal server error has occured."
 	}
 
-	log.Print(err)
-	conn.WriteControl(
+	err = conn.WriteControl(
 		websocket.CloseMessage,
 		websocket.FormatCloseMessage(code, message),
 		time.Now().Add(1*time.Second),
 	)
+	if err != nil {
+		log.Print("Couldn't write over websocket connection")
+	}
 }

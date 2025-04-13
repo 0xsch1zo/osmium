@@ -65,16 +65,18 @@ type Event struct {
 type CallbackHandle int
 
 type ClientError struct {
-	Err string
+	StatusCode int
+	Err        string
 }
 
 func (clientError *ClientError) Error() string {
 	return clientError.Err
 }
 
-func NewClientError(err string) *ClientError {
+func NewClientError(err string, statusCode int) *ClientError {
 	return &ClientError{
-		Err: err,
+		StatusCode: statusCode,
+		Err:        err,
 	}
 }
 

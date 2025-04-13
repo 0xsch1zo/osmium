@@ -45,7 +45,7 @@ func (server *Server) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := r.Cookie("token")
 		if err == http.ErrNoCookie {
-			api.RequestErrorHandler(w, errors.New(errUnauthorized))
+			api.RequestErrorHandler(w, errors.New(errUnauthorized), http.StatusUnauthorized)
 			return
 		} else if err != nil {
 			api.InternalErrorHandler(w)

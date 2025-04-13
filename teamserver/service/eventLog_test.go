@@ -19,10 +19,7 @@ func TestEventLog(t *testing.T) {
 		teamserver.EventType
 		text string
 	}{teamserver.Info, "testing"}
-	err = testedServices.eventLogService.LogEvent(eventGiven.EventType, eventGiven.text)
-	if err != nil {
-		t.Fatal(err)
-	}
+	testedServices.eventLogService.LogEvent(eventGiven.EventType, eventGiven.text)
 
 	eventLogGot, err := testedServices.eventLogService.GetEventLog()
 	if err != nil {
@@ -59,10 +56,8 @@ func TestAddEventLogCallback(t *testing.T) {
 		wg.Done()
 	})
 
-	err = testedServices.eventLogService.LogEvent(eventGiven.EventType, eventGiven.text)
-	if err != nil {
-		t.Fatal(err)
-	}
+	testedServices.eventLogService.LogEvent(eventGiven.EventType, eventGiven.text)
+
 	wg.Wait()
 }
 
@@ -79,10 +74,7 @@ func TestRemoveEventLogCallback(t *testing.T) {
 
 	testedServices.eventLogService.RemoveOnEventLoggedCallback(cHandle)
 
-	err = testedServices.eventLogService.LogEvent(teamserver.Warn, "garbage")
-	if err != nil {
-		t.Fatal(err)
-	}
+	testedServices.eventLogService.LogEvent(teamserver.Warn, "garbage")
 
 	select {
 	case <-ch:

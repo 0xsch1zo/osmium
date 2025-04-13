@@ -1,17 +1,18 @@
 package service
 
 import (
+	"log"
 	"strings"
 	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
 
-func (es *EventLogService) LogEvent(eventType teamserver.EventType, text string) error {
+func (es *EventLogService) LogEvent(eventType teamserver.EventType, text string) {
 	event := &teamserver.Event{Type: eventType, Time: time.Now(), Contents: text}
 	err := es.eventLogRepository.LogEvent(event)
 	if err != nil {
-		return err
+		log.Printf("Failed to log event: %s", err.Error())
 	}
 
 	for _, listener := range es.callbacks {
@@ -20,8 +21,6 @@ func (es *EventLogService) LogEvent(eventType teamserver.EventType, text string)
 			go listener(*event)
 		}
 	}
-
-	return nil
 }
 
 func (es *EventLogService) GetEventLog() ([]string, error) {

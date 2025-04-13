@@ -2,6 +2,7 @@ package service
 
 import (
 	"crypto/rsa"
+	"fmt"
 	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
@@ -15,6 +16,15 @@ const (
 	errTokenNotOld        = "Token is not old enugh"
 	errInvalidCredentials = "Invalid credentials"
 	jwtExpiryTime         = 15 * time.Minute
+)
+
+type ServiceString string
+
+const (
+	agentServiceStr         ServiceString = "Agent service: "
+	tasksServiceStr                       = "Tasks service: "
+	taskResultsServiceStr                 = "Tasks results service: "
+	authorizationServiceStr               = "Authorization service: "
 )
 
 type AgentRepository interface {
@@ -124,4 +134,9 @@ func NewEventLogService(eventLogRepository *EventLogRepository) *EventLogService
 	return &EventLogService{
 		eventLogRepository: *eventLogRepository,
 	}
+}
+
+func ServiceServerErrHandler(err error, service ServiceString, eventLogService *EventLogService) {
+	err = fmt.Errorf("Server error: %s%w", service, err)
+	eventLogService.LogEvent(teamserver.Error, err.Error())
 }

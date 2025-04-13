@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
@@ -11,11 +12,13 @@ import (
 func (as *AgentService) AddAgent() (*teamserver.Agent, error) {
 	rsaPriv, err := tools.GenerateKey()
 	if err != nil {
-		return nil, teamserver.NewServerError(err.Error())
+		ServiceServerErrHandler(err, agentServiceStr, as.eventLogService)
+		return nil, err
 	}
 
 	agent, err := as.agentRepository.AddAgent(rsaPriv)
 	if err != nil {
+		ServiceServerErrHandler(err, agentServiceStr, as.eventLogService)
 		return nil, err
 	}
 
@@ -45,17 +48,22 @@ func (as *AgentService) GetAgent(agentId uint64) (*teamserver.Agent, error) {
 	}
 
 	agent, err := as.agentRepository.GetAgent(agentId)
-	return agent, err
+	if err != nil {
+		ServiceServerErrHandler(err, agentServiceStr, as.eventLogService)
+		return nil, err
+	}
+	return agent, nil
 }
 
 func (as *AgentService) AgentExists(agentId uint64) error {
 	exists, err := as.agentRepository.AgentExists(agentId)
 	if err != nil {
+		ServiceServerErrHandler(err, agentServiceStr, as.eventLogService)
 		return err
 	}
 
 	if !exists {
-		return teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId))
+		return teamserver.NewClientError(fmt.Sprintf(errAgentIdNotFoundFmt, agentId), http.StatusNotFound)
 	}
 	return nil
 }
@@ -63,6 +71,7 @@ func (as *AgentService) AgentExists(agentId uint64) error {
 func (as *AgentService) ListAgents() ([]teamserver.AgentView, error) {
 	agentViews, err := as.agentRepository.ListAgents()
 	if err != nil {
+		ServiceServerErrHandler(err, agentServiceStr, as.eventLogService)
 		return nil, err
 	}
 	return agentViews, nil

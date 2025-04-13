@@ -57,8 +57,8 @@ func writeError(w http.ResponseWriter, error Error) {
 	_ = json.NewEncoder(w).Encode(error)
 }
 
-func RequestErrorHandler(w http.ResponseWriter, err error) {
-	writeError(w, Error{Code: http.StatusBadRequest, Message: err.Error()})
+func RequestErrorHandler(w http.ResponseWriter, err error, code int) {
+	writeError(w, Error{Code: code, Message: err.Error()})
 }
 
 func InternalErrorHandler(w http.ResponseWriter) {
