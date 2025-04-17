@@ -5,4 +5,3 @@ limit password length to prevent ddos
 remove callbacks when necessary
 log better for client erorrs
 pass more to ServiceServerErrHandler as argument to get better errors
-write tests for GetTaskResults
