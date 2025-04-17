@@ -1,8 +1,10 @@
 package http
 
 import (
-	"github.com/sentientbottleofwine/osmium/teamserver/internal/templates"
 	"net/http"
+	"strconv"
+
+	"github.com/sentientbottleofwine/osmium/teamserver/internal/templates"
 )
 
 func (server *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
@@ -26,20 +28,43 @@ func (server *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	agentsView, err := server.AgentService.ListAgents()
+	agents, err := server.AgentService.ListAgents()
 	if err != nil {
 		ApiErrorHandler(err, w)
 		return
 	}
 
-	eventLogView, err := server.EventLogService.GetEventLog()
+	eventLog, err := server.EventLogService.GetEventLog()
 	if err != nil {
 		ApiErrorHandler(err, w)
 		return
 	}
 
-	homePage := templates.Dashboard(templates.AgentsView(agentsView), eventLogView)
+	homePage := templates.Dashboard(
+		templates.AgentsView(agents),
+		templates.EventLogView(eventLog),
+	)
 	err = homePage.Render(r.Context(), w)
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
+}
+
+func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
+	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
+
+	taskResults, err := server.TaskResultsService.GetTaskResults(agentId)
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
+
+	err = templates.TaskResults(taskResults).Render(r.Context(), w)
 	if err != nil {
 		ApiErrorHandler(err, w)
 		return

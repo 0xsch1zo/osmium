@@ -6,3 +6,4 @@ remove callbacks when necessary
 add abiblity to view task results when the agent socket is not open
 log better for client erorrs
 pass more to ServiceServerErrHandler as argument to get better errors
+write tests for GetTaskResults

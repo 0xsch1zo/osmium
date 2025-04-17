@@ -81,12 +81,16 @@ func (server *Server) registerAgentApiRouter() {
 		http.HandlerFunc(server.AddTask),
 	))
 
+	router.Handle("GET /agents/{agentId}/results", server.Authenticate(
+		http.HandlerFunc(server.GetTaskResults),
+	))
+
 	router.Handle("GET /agents/{agentId}/results/{taskId}", server.Authenticate(
 		http.HandlerFunc(server.GetTaskResult),
 	))
 
-	router.Handle("GET /agents/{agentId}/socket", server.Authenticate(http.
-		HandlerFunc(server.AgentSocket),
+	router.Handle("GET /agents/{agentId}/socket", server.Authenticate(
+		http.HandlerFunc(server.AgentSocket),
 	))
 
 	router.Handle("GET /eventLog", server.Authenticate(

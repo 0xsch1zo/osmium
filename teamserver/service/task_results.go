@@ -61,6 +61,21 @@ func (trs *TaskResultsService) GetTaskResult(agentId uint64, taskId uint64) (*te
 	return taskResult, nil
 }
 
+func (trs *TaskResultsService) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
+	err := trs.agentService.AgentExists(agentId)
+	if err != nil {
+		return nil, err
+	}
+
+	taskResults, err := trs.taskResultsRepository.GetTaskResults(agentId)
+	if err != nil {
+		ServiceServerErrHandler(err, taskResultsServiceStr, trs.eventLogService)
+		return nil, err
+	}
+
+	return taskResults, nil
+}
+
 func (trs *TaskResultsService) TaskResultExists(agentId, taskId uint64) (bool, error) {
 	err := trs.agentService.AgentExists(agentId)
 	if err != nil {

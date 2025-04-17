@@ -44,6 +44,7 @@ type TasksRepository interface {
 type TaskResultsRepository interface {
 	SaveTaskResult(agentId uint64, taskResult *teamserver.TaskResultIn) error
 	GetTaskResult(agentId uint64, taskId uint64) (*teamserver.TaskResultOut, error)
+	GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error)
 	TaskResultExists(agentId, taskId uint64) (bool, error)
 }
 

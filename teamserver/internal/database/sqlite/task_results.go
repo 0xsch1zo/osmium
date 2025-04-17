@@ -31,6 +31,26 @@ func (trr *TaskResultsRepository) GetTaskResult(agentId uint64, taskId uint64) (
 	return &taskResult, nil
 }
 
+func (trr *TaskResultsRepository) GetTaskResults(agentId uint64) ([]teamserver.TaskResultOut, error) {
+	query := "SELECT Task, Output, TaskResults.TaskId FROM TaskResults INNER JOIN Tasks ON Tasks.TaskId = TaskResults.TaskId WHERE TaskResults.AgentId = ?"
+	taskResultsSqlRows, err := trr.databaseHandle.Query(query, agentId)
+	if err != nil {
+		return nil, err
+	}
+
+	var taskResults []teamserver.TaskResultOut
+	for taskResultsSqlRows.Next() {
+		taskResult := teamserver.TaskResultOut{}
+		err = taskResultsSqlRows.Scan(&taskResult.Task, &taskResult.Output, &taskResult.TaskId)
+		if err != nil {
+			return nil, err
+		}
+		taskResults = append(taskResults, taskResult)
+	}
+
+	return taskResults, err
+}
+
 func (trr *TaskResultsRepository) TaskResultExists(agentId, taskId uint64) (bool, error) {
 	query := "SELECT TaskId FROM TaskResults WHERE AgentId = ? AND TaskId = ?"
 	row := trr.databaseHandle.QueryRow(query, agentId, taskId)
