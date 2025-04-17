@@ -1,16 +1,18 @@
 package templates
 
-templ EventsView(eventLog []string) {
-<div id="event-log-dummy" hx-ext="sse" sse-connect="/api/eventLog" sse-swap="event" hx-swap="none"></div>
-<table id="event-log">
-    <tbody id="event-log-body">
-        for _, event := range eventLog {
-        <tr>
-            <td>{ event }</td>
-        </tr>
-        }
-    </tbody>
-</table>
+templ EventLogView(eventLog []string) {
+<div>
+    <div id="event-log-dummy" hx-ext="sse" sse-connect="/api/eventLog" sse-swap="event" hx-swap="none"></div>
+    <table id="event-log">
+        <tbody id="event-log-body">
+            for _, event := range eventLog {
+            <tr>
+                <td>{ event }</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
 }
 
 templ EventOOB(event string) {

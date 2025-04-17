@@ -1,6 +1,6 @@
 package templates
 
-templ Dashboard(agentsView templ.Component, eventLog []string) {
+templ Dashboard(agentsView templ.Component, eventLogView templ.Component) {
 <!DOCTYPE html>
 <html>
 
@@ -10,19 +10,17 @@ templ Dashboard(agentsView templ.Component, eventLog []string) {
     <script src="/node_modules/htmx.org/dist/htmx.js"></script>
     <script src="/node_modules/htmx-ext-sse/dist/sse.js"></script>
     <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
-    <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
+    <script src="/node_modules/@xterm/xterm/lib/xterm.js"></script>
+    <script defer src="/node_modules/alpinejs/dist/cdn.min.js"></script>
     <script src="/static/js/commandline.js"></script>
     <link rel="stylesheet" href="static/css/style.css" />
 </head>
 
 <body>
     <div id="Dashboard">
-        <div>
-            @EventsView(eventLog)
-        </div>
-        <div id="Agents">
-            @agentsView
-        </div>
+        @eventLogView
+        @agentsView
+        @TaskResultsView()
         <div id="Commandline"></div>
     </div>
 </body>

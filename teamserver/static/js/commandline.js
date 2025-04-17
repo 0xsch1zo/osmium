@@ -17,6 +17,8 @@ async function termInit(agentId) {
     const ws = new WebSocket(`/api/agents/${agentId}/socket`)
     await awaitSocketOpen(ws)
 
+    await htmx.ajax('GET', `/api/agents/${agentId}/results`, '#task-results-body')
+
     prompt(agentId)
     dispose = term.onData(async function(evt) {
         switch (evt) {
