@@ -1,3 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+    --color-dark-raisin-black: #171922;
+    --color-raisin-black: #191B25;
+    --color-delft-blue: #414868;
+    --color-vista-blue: #7AA2F7;
+    --color-wisteria: #BB9AF7;
+}
+
 .revealOnHover {
     display: none;
 }
