@@ -1,39 +1,57 @@
 package templates
 
-import "github.com/sentientbottleofwine/osmium/teamserver"
-import "strconv"
+import (
+"github.com/sentientbottleofwine/osmium/teamserver"
+"strconv"
+)
 
 templ AgentsView(agents []teamserver.AgentView) {
-<div id="Agents">
+<div id="Agents" class="basis-[50svw] dashboard-element flex flex-col min-h-0">
     <div id="agent-dummy" hx-ext="sse" sse-connect="/api/agents/register/listen" sse-swap="agent" hx-swap="none"></div>
-    <h1>Agents</h1>
-    <table>
+    <h2 class="dashboard-element-header">Agents</h2>
+    /*<table class="flex flex-col">
         <thead>
             <tr>
-                <th>Agent Id</th>
+                <th class="text-lg font-medium text-indigo-600">Agent Id</th>
             </tr>
         </thead>
-        <tbody id="agent-list-body">
-            for _, agent := range agents {
-            <tr class="agent">
-                <td>{ strconv.FormatUint(agent.AgentId, 10) }</td>
-                <td class="revealOnHover">
-                    <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
-                </td>
-            </tr>
-            }
-        </tbody>
-    </table>
+        <div class="overflow-auto min-h-0">
+            <tbody id="agent-list-body">
+                for _, agent := range agents {
+                <tr class="agent">
+                    <td>{ strconv.FormatUint(agent.AgentId, 10) }</td>
+                    <td class="revealOnHover">
+                        <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </div>
+    </table>*/
+    <div id="agent-table-head" class="flex flex-row justify-between">
+        <h4 class="text-indigo-600 font-medium">Agent Id</h4>
+    </div>
+    // Not a table because css is a joke
+    <div id="agent-table-body" class="overflow-auto min-h-0">
+        for _, agent := range agents {
+        <div class="agent flex flex-row justify-between">
+            <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
+            <div class="revealOnHover">
+                <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
+            </div>
+        </div>
+        }
+    </div>
 </div>
 }
 
 templ AgentOOB(agent *teamserver.Agent) {
-<tbody hx-swap-oob="beforeend:#agent-list-body">
-    <tr class="agent">
-        <td>{ strconv.FormatUint(agent.AgentId, 10) }</td>
-        <td class="revealOnHover">
+<div hx-swap-oob="beforeend:#agent-table-body">
+    <div class="agent flex flex-row justify-between">
+        <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
+        <div class="revealOnHover">
             <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
-        </td>
-    </tr>
-</tbody>
+        </div>
+    </div>
+</div>
 }

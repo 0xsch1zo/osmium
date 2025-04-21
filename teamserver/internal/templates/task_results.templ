@@ -3,18 +3,20 @@ package templates
 import "github.com/sentientbottleofwine/osmium/teamserver"
 
 templ TaskResultsView() {
-<div id="taks-results-view">
-    <h1>Task Results</h1>
-    <div id="task-results-body"></div>
+<div id="taks-results-view" class="dashboard-element basis-1/3 flex flex-col">
+    <h2 class="dashboard-element-header">Task Results</h2>
+    <div id="task-results-body" class="overflow-auto"></div>
 </div>
 }
 
 templ TaskResults(taskResults []teamserver.TaskResultOut) {
 for _, taskResult := range taskResults {
 <div x-data="{ open: false }">
-    <button @click="open = !open" x-text="open ? '🞁' : '🞃'">🞃</button>
-    <p>Task: { taskResult.Task }</p>
-    <p x-show="open" @click.outside="open = false">Output { taskResult.Output }</p>
+    <span><span class="text-indigo-600">Task:</span> { taskResult.Task }</span>
+    <button @click="open = !open" x-text="open ? '🞁' : '🞃'" class="p-2"></button>
+    <p x-show="open" @click.outside="open = false">
+        <span class="text-emerald-300">Output:</span> { taskResult.Output }
+    </p>
 </div>
 }
 }

@@ -7,21 +7,30 @@ templ Dashboard(agentsView templ.Component, eventLogView templ.Component) {
 <head>
     <title>Dashboard</title>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
+    <link rel="stylesheet" href="static/css/tailwind.css" />
     <script src="/node_modules/htmx.org/dist/htmx.js"></script>
     <script src="/node_modules/htmx-ext-sse/dist/sse.js"></script>
-    <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
-    <script src="/node_modules/@xterm/xterm/lib/xterm.js"></script>
     <script defer src="/node_modules/alpinejs/dist/cdn.min.js"></script>
-    <script src="/static/js/commandline.js"></script>
-    <link rel="stylesheet" href="static/css/style.css" />
+    <script src="/dist/main.js"></script>
 </head>
 
 <body>
-    <div id="Dashboard">
-        @eventLogView
-        @agentsView
-        @TaskResultsView()
-        <div id="Commandline"></div>
+    <div id="dashboard" class="bg-neutral-950 text-gray-100 flex flex-col h-svh">
+        <div id="upper-dashboard" class="flex flex-col max-h-1/2">
+            <h1 class="text-emerald-300 text-3xl font-bold">Osmium C<span class="text-indigo-600">2</span></h1>
+            <div class="flex flex-row justify-between min-h-0">
+                @agentsView
+                @eventLogView
+            </div>
+        </div>
+        <div id="lower-dashboard" class="flex justify-between h-1/2 max-h-1/2">
+            @TaskResultsView()
+            <div class="dashboard-element basis-2/3 flex flex-col">
+                <h2 class="dashboard-element-header">Terminal</h2>
+                <div id="commandline" class="grow min-h-0"></div>
+            </div>
+        </div>
     </div>
 </body>
 
