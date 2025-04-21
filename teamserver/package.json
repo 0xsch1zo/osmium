@@ -4,15 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "webpack"
   },
   "devDependencies": {
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "webpack": "^5.99.6",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.4",
+    "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
     "alpinejs": "^3.14.9",
     "htmx-ext-sse": "^2.2.3",

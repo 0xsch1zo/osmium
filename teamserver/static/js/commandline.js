@@ -1,9 +1,18 @@
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+
 var term = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
+    theme: {
+        background: "#27272a",
+    },
 });
+const fitAddon = new FitAddon();
+term.loadAddon(fitAddon)
 
-dispose = term.onData()
+var dispose = term.onData()
+var command = ""
 
 function prompt(agentId) {
     command = ""
@@ -13,7 +22,8 @@ function prompt(agentId) {
 async function termInit(agentId) {
     dispose.dispose()
     term.clear()
-    term.open(document.getElementById('Commandline'));
+    term.open(document.getElementById('commandline'))
+    fitAddon.fit()
     const ws = new WebSocket(`/api/agents/${agentId}/socket`)
     await awaitSocketOpen(ws)
 
@@ -48,6 +58,8 @@ async function termInit(agentId) {
         }
     })
 }
+
+window.termInit = termInit
 
 function awaitSocketOpen(ws) {
     return new Promise(function(resolve) {
