@@ -9,25 +9,6 @@ templ AgentsView(agents []teamserver.AgentView) {
 <div id="Agents" class="basis-[50svw] dashboard-element flex flex-col min-h-0">
     <div id="agent-dummy" hx-ext="sse" sse-connect="/api/agents/register/listen" sse-swap="agent" hx-swap="none"></div>
     <h2 class="dashboard-element-header">Agents</h2>
-    /*<table class="flex flex-col">
-        <thead>
-            <tr>
-                <th class="text-lg font-medium text-indigo-600">Agent Id</th>
-            </tr>
-        </thead>
-        <div class="overflow-auto min-h-0">
-            <tbody id="agent-list-body">
-                for _, agent := range agents {
-                <tr class="agent">
-                    <td>{ strconv.FormatUint(agent.AgentId, 10) }</td>
-                    <td class="revealOnHover">
-                        <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
-                    </td>
-                </tr>
-                }
-            </tbody>
-        </div>
-    </table>*/
     <div id="agent-table-head" class="flex flex-row justify-between">
         <h4 class="text-indigo-600 font-medium">Agent Id</h4>
     </div>
@@ -36,9 +17,9 @@ templ AgentsView(agents []teamserver.AgentView) {
         for _, agent := range agents {
         <div class="agent flex flex-row justify-between">
             <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
-            <div class="revealOnHover">
-                <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
-            </div>
+            <button class="agent-reveal-on-hover" onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>
+                Open shell
+            </button>
         </div>
         }
     </div>
@@ -49,9 +30,9 @@ templ AgentOOB(agent *teamserver.Agent) {
 <div hx-swap-oob="beforeend:#agent-table-body">
     <div class="agent flex flex-row justify-between">
         <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
-        <div class="revealOnHover">
-            <button onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>Open shell</button>
-        </div>
+        <button class="agent-reveal-on-hover" onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>
+            Choose agent
+        </button>
     </div>
 </div>
 }

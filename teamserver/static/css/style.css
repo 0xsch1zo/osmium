@@ -1,12 +1,21 @@
 @import "tailwindcss";
 
-.revealOnHover {
+.agent-reveal-on-hover {
     display: none;
 }
 
 .agent:hover
-.revealOnHover {
-    display: table-row;
+.agent-reveal-on-hover {
+    display: flex;
+}
+
+.task-result-expander-reveal-on-hover{
+    display: none;
+}
+
+.task-result:hover
+.task-result-expander-reveal-on-hover {
+    display: block;
 }
 
 .dashboard-element {

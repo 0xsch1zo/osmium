@@ -11,11 +11,13 @@ templ TaskResultsView() {
 
 templ TaskResults(taskResults []teamserver.TaskResultOut) {
 for _, taskResult := range taskResults {
-<div x-data="{ open: false }">
-    <span><span class="text-indigo-600">Task:</span> { taskResult.Task }</span>
-    <button @click="open = !open" x-text="open ? '🞁' : '🞃'" class="p-2"></button>
+<div x-data="{ open: false }" class="task-result hover:bg-zinc-300/30 p-1 rounded-md">
+    <div @click="open = !open" class="flex justify-between">
+        <p>{ taskResult.Task }</p>
+        <button x-text="open ? '🞁' : '🞃'" class="task-result-expander-reveal-on-hover"></button>
+    </div>
     <p x-show="open" @click.outside="open = false">
-        <span class="text-emerald-300">Output:</span> { taskResult.Output }
+        <span class="text-emerald-300 pl-8">Output:</span> { taskResult.Output }
     </p>
 </div>
 }
