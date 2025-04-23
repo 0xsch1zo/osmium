@@ -5,13 +5,17 @@ import "github.com/sentientbottleofwine/osmium/teamserver"
 templ TaskResultsView() {
 <div id="taks-results-view" class="dashboard-element basis-1/3 flex flex-col">
     <h2 class="dashboard-element-header">Task Results</h2>
-    <div id="task-results-body" class="overflow-auto"></div>
+    <div id="task-results-body" class="overflow-auto rounded-md m-1 bg-neutral-600/40 border-2 border-slate-400 grow">
+        <div class="flex justify-center items-center h-full">
+            <h5 class="text-color-neutral-500/10 italic">Agent hasn't been chosen yet...</h5>
+        </div>
+    </div>
 </div>
 }
 
 templ TaskResults(taskResults []teamserver.TaskResultOut) {
 for _, taskResult := range taskResults {
-<div x-data="{ open: false }" class="task-result hover:bg-zinc-300/30 p-1 rounded-md">
+<div x-data="{ open: false }" class="task-result hover:bg-zinc-300/30 p-1 rounded-md ">
     <div @click="open = !open" class="flex justify-between">
         <p>{ taskResult.Task }</p>
         <button x-text="open ? '🞁' : '🞃'" class="task-result-expander-reveal-on-hover"></button>
@@ -19,6 +23,11 @@ for _, taskResult := range taskResults {
     <p x-show="open" @click.outside="open = false">
         <span class="text-emerald-300 pl-8">Output:</span> { taskResult.Output }
     </p>
+</div>
+}
+if len(taskResults) == 0 {
+<div class="flex justify-center items-center h-full">
+    <h5 class="text-color-neutral-500/10 italic">No task results recieved yet...</h5>
 </div>
 }
 }
