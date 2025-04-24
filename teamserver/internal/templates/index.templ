@@ -28,7 +28,14 @@ templ Dashboard(agentsView templ.Component, eventLogView templ.Component) {
             @TaskResultsView()
             <div class="dashboard-element basis-2/3 flex flex-col">
                 <h2 class="dashboard-element-header">Terminal</h2>
-                <div id="commandline" class="grow min-h-0"></div>
+                <div id="commandline"
+                    class="grow flex justify-center items-center min-h-0 rounded-md m-1 border-2 border-slate-400 h-full"
+                    style="background-color: #38383A;">
+                    <h5 id="commandline-placeholder" class="text-color-neutral-500/10 italic">
+                        Agent hasn't been
+                        chosen yet...
+                    </h5>
+                </div>
             </div>
         </div>
     </div>

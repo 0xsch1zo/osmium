@@ -5,7 +5,7 @@ var term = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
     theme: {
-        background: "#27272a",
+        background: "#38383A",
     },
 });
 const fitAddon = new FitAddon();
@@ -20,6 +20,10 @@ function prompt(agentId) {
 }
 
 async function termInit(agentId) {
+    var placeholder = document.getElementById("commandline-placeholder")
+    if (placeholder != null) {
+        placeholder.remove()
+    }
     dispose.dispose()
     term.clear()
     term.open(document.getElementById('commandline'))
