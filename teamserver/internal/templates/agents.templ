@@ -13,7 +13,7 @@ templ AgentsView(agents []teamserver.AgentView) {
         <h4 class="text-indigo-600 font-medium">Agent Id</h4>
     </div>
     // Not a table because css is a joke
-    <div id="agent-table-body" class="overflow-auto min-h-0 rounded-md m-1 border-2 border-slate-400">
+    <div id="agent-table-body" class="overflow-auto min-h-0 rounded-md m-1 border-2 border-zinc-500">
         for i, agent := range agents {
         if i % 2 == 0 {
         <div class="agent flex flex-row justify-between p-1 bg-neutral-500/40">
