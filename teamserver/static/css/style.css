@@ -27,6 +27,7 @@
 
 .dashboard-element-header {
     color: var(--color-emerald-300);
+    margin-left: calc(var(--spacing) * 1);
     font-weight: 600;
 }
 

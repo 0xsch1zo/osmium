@@ -5,7 +5,7 @@ var term = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
     theme: {
-        background: "#38383A",
+        background: "#00000000", // transparent
     },
 });
 const fitAddon = new FitAddon();
