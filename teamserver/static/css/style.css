@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+body {
+    color: white;
+}
+
 .agent-reveal-on-hover {
     display: none;
 }
@@ -35,6 +39,22 @@
     border: 2px sollid;
     border-radiues: var(--radius-md);
 }
+
+.login-input {
+    font-size: var(--text-xl);
+    border-radius: var(--radius-xl);
+    line-height: var(--text-xl--line-height);
+    font-weight: 600;
+    padding: calc(var(--spacing) * 2);
+    background-color: var(--color-neutral-950);
+    border: 2px solid var(--color-neutral-600);
+}
+
+.login-input:focus {
+    outline: none;
+    border: 2px solid var(--color-indigo-600);
+}
+
 h1 {
     font-size: var(--text-3xl);
     line-height: var(--text-3xl--line-height);

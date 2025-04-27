@@ -7,6 +7,7 @@ templ LoginPage() {
 <head>
     <title>Login</title>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="static/css/tailwind.css" />
     <script src="/node_modules/htmx.org/dist/htmx.js"></script>
 </head>
 
@@ -18,28 +19,36 @@ templ LoginPage() {
 }
 
 templ LoginForm(incorrectCreds bool) {
-<div id="loginForm">
-    <form hx-post="/api/auth/login" hx-target="#loginForm">
-        <label>Username</label>
-        <br />
-        <input type="text" id="username" name="username" />
-        <br />
-        <label>Password</label>
-        <br />
-        <input type="password" id="password" name="password" />
-        <br />
-        if (incorrectCreds) {
-        <p id="loginError">Password or login are incorrect</p>
-        }
-        <button type="submit">Login</button>
-    </form>
-    <script>
-        document.getElementById("loginForm").addEventListener("htmx:beforeSwap", function (evt) {
-            if (evt.detail.xhr.status === 401) {
-                evt.detail.shouldSwap = true
-                evt.detail.isError = false
-            }
-        })
-    </script>
+<div id="loginForm" class="bg-neutral-950 h-[100svh] flex justify-center items-center">
+    <div class="bg-neutral-800 rounded-3xl h-[40svh] min-w-[50svh] p-4 border-4 border-emerald-300">
+        <form hx-post="/api/auth/login" hx-target="#loginForm" class="flex flex-col min-h-0 h-full justify-between">
+            <p class="text-emerald-300 font-bold self-center text-5xl min-h-0 mt-4">
+                Osmium C<span class="text-indigo-600">2</span>
+            </p>
+            <div class="flex flex-col">
+                <label class="text-xl font-semibold ">Username</label>
+                <br />
+                <input type="text" id="username" name="username" class="login-input mt-1 mb-6" />
+                <label class="text-xl font-semibold">Password</label>
+                <br />
+                <input type="password" id="password" name="password" class="login-input mt-1" />
+                if (incorrectCreds) {
+                <h3 id="loginError" class="text-red-500 self-center">Password or login are incorrect</h3>
+                }
+            </div>
+            <div class="flex">
+                <button type="submit"
+                    class="justify-self-center grow mx-1 bg-neutral-950 rounded-2xl p-4 text-xl font-semibold border-2 border-neutral-600">Login</button>
+            </div>
+        </form>
+        <script>
+            document.getElementById("loginForm").addEventListener("htmx:beforeSwap", function (evt) {
+                if (evt.detail.xhr.status === 401) {
+                    evt.detail.shouldSwap = true
+                    evt.detail.isError = false
+                }
+            })
+        </script>
+    </div>
 </div>
 }
