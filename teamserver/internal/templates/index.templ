@@ -18,7 +18,7 @@ templ Dashboard(agentsView templ.Component, eventLogView templ.Component) {
 <body>
     <div id="dashboard" class="bg-neutral-950 text-gray-100 flex flex-col h-svh">
         <div id="upper-dashboard" class="flex flex-col max-h-1/2">
-            <h1 class="text-emerald-300 text-3xl font-bold">Osmium C<span class="text-indigo-600">2</span></h1>
+            <h1 class="text-emerald-300 text-3xl font-bold ml-3">Osmium C<span class="text-indigo-600">2</span></h1>
             <div class="flex flex-row justify-between min-h-0">
                 @agentsView
                 @eventLogView
@@ -29,7 +29,7 @@ templ Dashboard(agentsView templ.Component, eventLogView templ.Component) {
             <div class="dashboard-element basis-2/3 flex flex-col">
                 <h2 class="dashboard-element-header">Terminal</h2>
                 <div id="commandline"
-                    class="grow flex justify-center items-center min-h-0 rounded-md m-1 border-2 border-zinc-500 bg-neutral-600/40 h-full">
+                    class="grow flex justify-center items-center min-h-0 rounded-md m-1 border-2 border-zinc-500 bg-neutral-950 h-full">
                     <h5 id="commandline-placeholder" class="text-color-neutral-500/10 italic">
                         Agent hasn't been
                         chosen yet...

@@ -16,11 +16,11 @@ templ AgentsView(agents []teamserver.AgentView) {
     <div id="agent-table-body" class="overflow-auto min-h-0 rounded-md m-1 border-2 border-zinc-500">
         for i, agent := range agents {
         if i % 2 == 0 {
-        <div class="agent flex flex-row justify-between p-1 bg-neutral-500/40">
+        <div class="agent flex flex-row justify-between p-1 bg-neutral-950/90">
             @agentView(agent.AgentId)
         </div>
         } else {
-        <div class="agent flex flex-row justify-between p-1 bg-neutral-600/40">
+        <div class="agent flex flex-row justify-between p-1 bg-neutral-900">
             @agentView(agent.AgentId)
         </div>
         }
