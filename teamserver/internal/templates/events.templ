@@ -3,8 +3,11 @@ package templates
 templ EventLogView(eventLog []string) {
 <div class="dashboard-element basis-[50svw] flex flex-col">
     <h2 class="dashboard-element-header">Event log</h2>
-    <div id="event-log-dummy" hx-ext="sse" sse-connect="/api/eventLog" sse-swap="event" hx-swap="none"></div>
-    <div id="event-log" class="overflow-auto bg-neutral-950 rounded-md m-1 border-2 border-zinc-500">
+    <div id="event-log-dummy" hx-ext="sse" sse-connect="/api/eventLog" sse-swap="event" hx-swap="none"
+        hx-on::oob-after-swap="let eventLog = document.getElementById('event-log');
+        eventLog.scrollTo(0, eventLog.scrollHeight);"></div>
+    <div id="event-log" class="overflow-auto bg-neutral-950 rounded-md m-1 border-2 border-zinc-500"
+        x-init="$el.scrollTo(0, $el.scrollHeight);">
         for _, event := range eventLog {
         <p>{ event }</p>
         }
