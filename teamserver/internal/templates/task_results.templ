@@ -15,7 +15,7 @@ templ TaskResultsView() {
 
 templ TaskResults(taskResults []teamserver.TaskResultOut) {
 for _, taskResult := range taskResults {
-<div x-data="{ open: false }" class="task-result hover:bg-zinc-300/30 pl-2 rounded-md ">
+<div x-data="{ open: false }" class="task-result hover:bg-neutral-700 active:bg-neutral-600 pl-2 rounded-md ">
     <div @click="open = !open" class="flex justify-between">
         <p>🢒 { taskResult.Task }</p>
         <button x-text="open ? '🞁' : '🞃'" class="task-result-expander-reveal-on-hover"></button>

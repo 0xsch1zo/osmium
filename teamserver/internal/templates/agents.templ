@@ -31,8 +31,9 @@ templ AgentsView(agents []teamserver.AgentView) {
 
 templ agentView(agentId uint64) {
 <p>{ strconv.FormatUint(agentId, 10) }</p>
-<button class="agent-reveal-on-hover bg-zinc-300/30 px-2 mr-1 rounded-md" onclick={ templ.JSFuncCall("termInit",
-    agentId) }>
+<button
+    class="agent-reveal-on-hover bg-neutral-950 active:bg-neutral-600 border-1 border-neutral-600 px-2 mr-1 rounded-md"
+    onclick={ templ.JSFuncCall("termInit", agentId) }>
     Choose agent
 </button>
 }
