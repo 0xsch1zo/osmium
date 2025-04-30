@@ -70,6 +70,7 @@ func (server *Server) registerAgentApiRouter() {
 	// Auth
 	router.HandleFunc("POST /auth/login", server.Login)
 	router.HandleFunc("POST /auth/refresh", server.RefreshToken)
+	router.HandleFunc("GET /auth/refreshTime", server.GetRefreshTime)
 
 	// agent
 	router.HandleFunc("POST /agents/register", server.AgentRegister)

@@ -16,15 +16,16 @@ const (
 	errTokenNotOld        = "Token is not old enugh"
 	errInvalidCredentials = "Invalid credentials"
 	jwtExpiryTime         = 15 * time.Minute
+	jwtRefreshWindow      = 30 * time.Second
 )
 
 type ServiceString string
 
 const (
 	agentServiceStr         ServiceString = "Agent service: "
-	tasksServiceStr                       = "Tasks service: "
-	taskResultsServiceStr                 = "Tasks results service: "
-	authorizationServiceStr               = "Authorization service: "
+	tasksServiceStr         ServiceString = "Tasks service: "
+	taskResultsServiceStr   ServiceString = "Tasks results service: "
+	authorizationServiceStr ServiceString = "Authorization service: "
 )
 
 type AgentRepository interface {

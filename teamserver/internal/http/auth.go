@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -71,4 +72,24 @@ func (server *Server) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		Expires:  refreshedToken.ExpiryTime,
 		Value:    refreshedToken.Token,
 	})
+}
+
+func (server *Server) GetRefreshTime(w http.ResponseWriter, r *http.Request) {
+	token, err := r.Cookie("token")
+	if err == http.ErrNoCookie {
+		api.RequestErrorHandler(w, errors.New(errUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	refTime, err := server.AuthorizationService.GetRefreshTime(token.Value)
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(api.GetRefreshTimeResponse{RefTime: refTime})
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
 }

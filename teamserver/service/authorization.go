@@ -95,7 +95,7 @@ func (auths *AuthorizationService) RefreshToken(token string) (*teamserver.AuthT
 		return nil, err
 	}
 
-	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
+	if time.Until(claims.ExpiresAt.Time) > jwtRefreshWindow {
 		return nil, teamserver.NewClientError(errTokenNotOld, http.StatusUnauthorized)
 	}
 
@@ -134,4 +134,19 @@ func (auths *AuthorizationService) UsernameExists(username string) error {
 	}
 
 	return nil
+}
+
+func (auths *AuthorizationService) GetRefreshTime(token string) (time.Time, error) {
+	err := auths.Authorize(token)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	claims, err := tools.GetJWTClaims(token, auths.jwtKey)
+	if err != nil {
+		ServiceServerErrHandler(err, authorizationServiceStr, auths.eventLogService)
+		return time.Time{}, err
+	}
+
+	return claims.ExpiresAt.Time.Add(-jwtRefreshWindow), nil
 }
