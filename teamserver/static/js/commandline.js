@@ -11,12 +11,15 @@ var term = new Terminal({
 const fitAddon = new FitAddon();
 term.loadAddon(fitAddon)
 
-var dispose = term.onData()
+var onDataDispose = term.onData()
 var command = ""
+var promptLength = 0
 
 function prompt(agentId) {
     command = ""
-    term.write("\r\nAgent " + agentId + " $ ")
+    const prompt = `Agent ${agentId} >> `
+    promptLength = prompt.length
+    term.write("\r\n" + prompt)
 }
 
 async function termInit(agentId) {
@@ -24,8 +27,8 @@ async function termInit(agentId) {
     if (placeholder != null) {
         placeholder.remove()
     }
-    dispose.dispose()
-    term.clear()
+    onDataDispose.dispose()
+    term.reset()
     term.open(document.getElementById('commandline'))
     fitAddon.fit()
     const ws = new WebSocket(`/api/agents/${agentId}/socket`)
@@ -34,7 +37,7 @@ async function termInit(agentId) {
     await htmx.ajax('GET', `/api/agents/${agentId}/results`, '#task-results-body')
 
     prompt(agentId)
-    dispose = term.onData(async function(evt) {
+    onDataDispose = term.onData(async function(evt) {
         switch (evt) {
             case '\u0003': // Ctrl+C
                 term.write('^C');
@@ -47,7 +50,7 @@ async function termInit(agentId) {
                 command = '';
                 break;
             case '\u007F': // Backspace (DEL)
-                if (term._core.buffer.x > 2) {
+                if (term._core.buffer.x > promptLength) {
                     term.write('\b \b');
                     if (command.length > 0) {
                         command = command.slice(0, command.length - 1);

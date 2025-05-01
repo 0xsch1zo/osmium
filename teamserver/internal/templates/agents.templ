@@ -16,11 +16,11 @@ templ AgentsView(agents []teamserver.AgentView) {
     <div id="agent-table-body" class="overflow-auto min-h-0 rounded-md m-1 border-2 border-zinc-500">
         for i, agent := range agents {
         if i % 2 == 0 {
-        <div class="agent flex flex-row justify-between p-1 bg-neutral-950/90">
+        <div class="agent flex flex-row justify-between p-2 bg-neutral-950/90">
             @agentView(agent.AgentId)
         </div>
         } else {
-        <div class="agent flex flex-row justify-between p-1 bg-neutral-900">
+        <div class="agent flex flex-row justify-between p-2 bg-neutral-900">
             @agentView(agent.AgentId)
         </div>
         }
@@ -32,7 +32,7 @@ templ AgentsView(agents []teamserver.AgentView) {
 templ agentView(agentId uint64) {
 <p>{ strconv.FormatUint(agentId, 10) }</p>
 <button
-    class="agent-reveal-on-hover bg-neutral-950 active:bg-neutral-600 border-1 border-neutral-600 px-2 mr-1 rounded-md"
+    class="agent-reveal-on-hover bg-neutral-950 active:bg-neutral-600 border-1 border-neutral-600 px-2 mr-1 rounded-md text-sm"
     onclick={ templ.JSFuncCall("termInit", agentId) }>
     Choose agent
 </button>

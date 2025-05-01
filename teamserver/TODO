@@ -1,8 +1,6 @@
 properly check for errors after unmarshalling json
 change jwt signing algo
-handle ctrl+c behaviour better
 limit password length to prevent ddos
 remove callbacks when necessary
 log better for client erorrs
 pass more to ServiceServerErrHandler as argument to get better errors
-Fix colors, they were wrong becuase of dark reader
