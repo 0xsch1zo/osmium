@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 )
 
 type RegisterResponse struct {
@@ -52,7 +51,7 @@ type Error struct {
 }
 
 type GetRefreshTimeResponse struct {
-	RefTime time.Time
+	RefTime string
 }
 
 func writeError(w http.ResponseWriter, error Error) {

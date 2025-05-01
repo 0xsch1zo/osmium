@@ -136,17 +136,18 @@ func (auths *AuthorizationService) UsernameExists(username string) error {
 	return nil
 }
 
-func (auths *AuthorizationService) GetRefreshTime(token string) (time.Time, error) {
+func (auths *AuthorizationService) GetRefreshTime(token string) (string, error) {
 	err := auths.Authorize(token)
 	if err != nil {
-		return time.Time{}, err
+		return "", err
 	}
 
 	claims, err := tools.GetJWTClaims(token, auths.jwtKey)
 	if err != nil {
 		ServiceServerErrHandler(err, authorizationServiceStr, auths.eventLogService)
-		return time.Time{}, err
+		return "", err
 	}
 
-	return claims.ExpiresAt.Time.Add(-jwtRefreshWindow), nil
+	refTime := claims.ExpiresAt.Time.Add(-jwtRefreshWindow)
+	return refTime.Format(time.RFC3339), nil
 }
