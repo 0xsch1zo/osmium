@@ -86,3 +86,33 @@ func TestRefreshToken(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGetRefreshTime(t *testing.T) {
+	testedServices, err := newTestedServices()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expiryTime := time.Now().Add(35 * time.Second)
+	token, err := tools.GenerateJWT(username, expiryTime, testingJwtKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	refreshTimeStr, err := testedServices.authorizationService.GetRefreshTime(token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	refreshTime, err := time.Parse(time.RFC3339, refreshTimeStr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(time.Until(refreshTime))
+
+	_, err = testedServices.authorizationService.RefreshToken(token)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
