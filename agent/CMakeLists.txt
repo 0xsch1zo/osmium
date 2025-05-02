@@ -17,7 +17,12 @@ FetchContent_Declare(cpr
     GIT_TAG 1.11.2
 )
 
-FetchContent_MakeAvailable(cpr nullgate)
+FetchContent_Declare(json
+    GIT_REPOSITORY https://github.com/nlohmann/json
+    GIT_TAG v3.12.0
+)
+
+FetchContent_MakeAvailable(cpr nullgate json)
 
 project(agent)
 
@@ -25,7 +30,12 @@ add_executable(agent
     ./src/agent.cpp
 )
 
+target_compile_options(agent
+    PRIVATE -s -O3
+)
+
 target_link_libraries(agent
     PRIVATE nullgate
     PRIVATE cpr::cpr
+    PRIVATE nlohmann_json::nlohmann_json
 )
