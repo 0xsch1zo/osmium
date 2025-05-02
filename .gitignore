@@ -7,3 +7,7 @@ tmp/
 *_templ.go
 dist/
 tailwind.css
+build/
+compile_commands.json
+.cache/
+hasher-build/
