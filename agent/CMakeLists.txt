@@ -27,7 +27,9 @@ FetchContent_MakeAvailable(cpr nullgate json)
 project(agent)
 
 add_executable(agent
+    ./src/main.cpp
     ./src/agent.cpp
+    ./src/utils.cpp
 )
 
 target_compile_options(agent
