@@ -7,3 +7,5 @@ pass more to ServiceServerErrHandler as argument to get better errors
 handle better auth error during token refresh
 fix shell making newlines when it shouldn't 
 tasks results doesn't update correctly
+remove callback listener after use
+fix agent not sending commmands

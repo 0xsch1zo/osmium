@@ -18,7 +18,6 @@ func (s *Server) EventLogListen(w http.ResponseWriter, r *http.Request) {
 		err := templates.EventOOB(s.EventLogService.FormatEvent(&event)).Render(r.Context(), &buf)
 		if err != nil {
 			log.Print(err)
-
 		}
 		err = sendSSE(w, "event", buf.String())
 		if err != nil {

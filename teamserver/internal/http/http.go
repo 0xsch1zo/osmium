@@ -86,6 +86,12 @@ func (server *Server) registerAgentApiRouter() {
 		http.HandlerFunc(server.GetTaskResults),
 	))
 
+	router.Handle("GET /agents/{agentId}/results/listen", server.Authenticate(
+		ServerSentEvents(
+			http.HandlerFunc(server.TaskResultsListen),
+		)),
+	)
+
 	router.Handle("GET /agents/{agentId}/results/{taskId}", server.Authenticate(
 		http.HandlerFunc(server.GetTaskResult),
 	))

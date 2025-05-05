@@ -1,6 +1,9 @@
 package templates
 
-import "github.com/sentientbottleofwine/osmium/teamserver"
+import (
+"fmt"
+"github.com/sentientbottleofwine/osmium/teamserver"
+)
 
 templ TaskResultsView() {
 <div id="taks-results-view" class="dashboard-element basis-1/3 flex flex-col">
@@ -13,7 +16,9 @@ templ TaskResultsView() {
 </div>
 }
 
-templ TaskResults(taskResults []teamserver.TaskResultOut) {
+templ TaskResults(agentId uint64, taskResults []teamserver.TaskResultOut) {
+<div id="task-results-dummy" hx-ext="sse" sse-connect={ fmt.Sprintf("/api/agents/%d/results/listen", agentId) }
+    sse-swap="task-result" hx-swap="none"></div>
 for _, taskResult := range taskResults {
 <div x-data="{ open: false }" class="task-result hover:bg-neutral-700 active:bg-neutral-600 pl-2 rounded-md ">
     <div @click="open = !open" class="flex justify-between">
@@ -30,4 +35,18 @@ if len(taskResults) == 0 {
     <h5 class="text-color-neutral-500/10 italic">No task results recieved yet...</h5>
 </div>
 }
+}
+
+templ TaskResultOOB(taskResult teamserver.TaskResultOut) {
+<div hx-swap-oob="beforeend:#task-results-body">
+    <div x-data="{ open: false }" class="task-result hover:bg-neutral-700 active:bg-neutral-600 pl-2 rounded-md">
+        <div @click="open = !open" class="flex justify-between">
+            <p>🢒 { taskResult.Task }</p>
+            <button x-text="open ? '🞁' : '🞃'" class="task-result-expander-reveal-on-hover"></button>
+        </div>
+        <p x-show="open" @click.outside="open = false">
+            <span class="text-emerald-300 pl-8">Output:</span> { taskResult.Output }
+        </p>
+    </div>
+</div>
 }

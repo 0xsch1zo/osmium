@@ -2,7 +2,6 @@ package http
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/templates"
 )
@@ -45,26 +44,6 @@ func (server *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 		templates.EventLogView(eventLog),
 	)
 	err = homePage.Render(r.Context(), w)
-	if err != nil {
-		ApiErrorHandler(err, w)
-		return
-	}
-}
-
-func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
-	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
-	if err != nil {
-		ApiErrorHandler(err, w)
-		return
-	}
-
-	taskResults, err := server.TaskResultsService.GetTaskResults(agentId)
-	if err != nil {
-		ApiErrorHandler(err, w)
-		return
-	}
-
-	err = templates.TaskResults(taskResults).Render(r.Context(), w)
 	if err != nil {
 		ApiErrorHandler(err, w)
 		return
