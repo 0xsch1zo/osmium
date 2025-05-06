@@ -116,13 +116,14 @@ func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 		// Waiting for task result to be added
 		wg := sync.WaitGroup{}
 		wg.Add(1)
-		_ = server.TaskResultsService.AddOnTaskResultSavedCallback(func(agentSaved uint64, result teamserver.TaskResultIn) {
+		handle := server.TaskResultsService.AddOnTaskResultSavedCallback(func(agentSaved uint64, result teamserver.TaskResultIn) {
 			if agentId == agentSaved && taskId == result.TaskId {
 				wg.Done()
 			}
 		})
 		wg.Wait()
 
+		server.TaskResultsService.RemoveOnTaskResultSavedCallback(handle)
 		taskResult, err := server.TaskResultsService.GetTaskResult(agentId, taskId)
 		if err != nil {
 			SocketErrorHandler(err, conn)
@@ -148,7 +149,7 @@ func (server *Server) AgentSocket(w http.ResponseWriter, r *http.Request) {
 func (s *Server) AddAgentListen(w http.ResponseWriter, r *http.Request) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	s.AgentService.AddOnAgentAddedCallback(func(agent teamserver.Agent) {
+	handle := s.AgentService.AddOnAgentAddedCallback(func(agent teamserver.Agent) {
 		buf := bytes.Buffer{}
 		err := templates.AgentOOB(&agent).Render(r.Context(), &buf)
 		if err != nil {
@@ -160,6 +161,7 @@ func (s *Server) AddAgentListen(w http.ResponseWriter, r *http.Request) {
 			log.Print(err)
 		}
 	})
+	defer s.AgentService.RemoveOnAgentAddedCallback(handle)
 
 	wg.Wait()
 }

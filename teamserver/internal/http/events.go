@@ -13,7 +13,7 @@ import (
 func (s *Server) EventLogListen(w http.ResponseWriter, r *http.Request) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	s.EventLogService.AddOnEventLoggedCallback(func(event teamserver.Event) {
+	handle := s.EventLogService.AddOnEventLoggedCallback(func(event teamserver.Event) {
 		buf := bytes.Buffer{}
 		err := templates.EventOOB(s.EventLogService.FormatEvent(&event)).Render(r.Context(), &buf)
 		if err != nil {
@@ -25,5 +25,6 @@ func (s *Server) EventLogListen(w http.ResponseWriter, r *http.Request) {
 		}
 	})
 
+	defer s.EventLogService.RemoveOnEventLoggedCallback(handle)
 	wg.Wait()
 }
