@@ -6,10 +6,12 @@ import (
 )
 
 templ TaskResultsView() {
-<div id="taks-results-view" class="dashboard-element basis-1/3 flex flex-col">
+<div id="taks-results-view" class="dashboard-element basis-1/3 max-w-1/3 flex flex-col">
     <h2 class="dashboard-element-header">Task Results</h2>
-    <div id="task-results-body" class="overflow-auto rounded-md m-1 bg-neutral-950 border-2 border-zinc-500 grow">
-        <div class="flex justify-center items-center h-full">
+    <div id="task-results-body"
+        class="max-w-full overflow-auto rounded-md m-1 bg-neutral-950 border-2 border-zinc-500 grow">
+        <div class="flex justify-center items-center h-full min-w-0">
+            // Task results get swapped in by js
             <h5 class="text-color-neutral-500/10 italic">Agent hasn't been chosen yet...</h5>
         </div>
     </div>
@@ -20,18 +22,10 @@ templ TaskResults(agentId uint64, taskResults []teamserver.TaskResultOut) {
 <div id="task-results-dummy" hx-ext="sse" sse-connect={ fmt.Sprintf("/api/agents/%d/results/listen", agentId) }
     sse-swap="task-result" hx-swap="none"></div>
 for _, taskResult := range taskResults {
-<div x-data="{ open: false }" class="task-result hover:bg-neutral-700 active:bg-neutral-600 pl-2 rounded-md ">
-    <div @click="open = !open" class="flex justify-between">
-        <p>🢒 { taskResult.Task }</p>
-        <button x-text="open ? '🞁' : '🞃'" class="task-result-expander-reveal-on-hover"></button>
-    </div>
-    <p x-show="open" @click.outside="open = false">
-        <span class="text-emerald-300 pl-8">Output:</span> { taskResult.Output }
-    </p>
-</div>
+@TaskResult(taskResult)
 }
 if len(taskResults) == 0 {
-<div class="flex justify-center items-center h-full">
+<div id="task-results-placeholder" class="flex justify-center items-center h-full">
     <h5 class="text-color-neutral-500/10 italic">No task results recieved yet...</h5>
 </div>
 }
@@ -39,14 +33,24 @@ if len(taskResults) == 0 {
 
 templ TaskResultOOB(taskResult teamserver.TaskResultOut) {
 <div hx-swap-oob="beforeend:#task-results-body">
-    <div x-data="{ open: false }" class="task-result hover:bg-neutral-700 active:bg-neutral-600 pl-2 rounded-md">
-        <div @click="open = !open" class="flex justify-between">
-            <p>🢒 { taskResult.Task }</p>
-            <button x-text="open ? '🞁' : '🞃'" class="task-result-expander-reveal-on-hover"></button>
-        </div>
-        <p x-show="open" @click.outside="open = false">
-            <span class="text-emerald-300 pl-8">Output:</span> { taskResult.Output }
-        </p>
+    @TaskResult(taskResult)
+</div>
+}
+
+templ TaskResult(taskResult teamserver.TaskResultOut) {
+<div x-data="{ open: false }"
+    class="task-result hover:bg-neutral-700 active:bg-neutral-600 m-1 px-2 rounded-md min-w-0">
+    <div @click="open = !open" class="flex justify-between">
+        <p>🢒 { taskResult.Task }</p>
+        <button x-text="open ? '🞁' : '🞃'" class="task-result-expander-reveal-on-hover"></button>
+    </div>
+    <div x-show="open" @click.outside="open = false" class="flex min-w-0 w-full">
+        <span class="text-emerald-300 pl-8">Output:</span>
+        <pre class="bg-neutral-900 rounded-md p-1 mx-2 mb-2 min-w-0 overflow-auto">
+            <code>
+                { taskResult.Output }
+            </code>
+        </pre>
     </div>
 </div>
 }

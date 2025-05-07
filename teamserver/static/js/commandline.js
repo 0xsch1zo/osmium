@@ -35,6 +35,13 @@ async function termInit(agentId) {
     await awaitSocketOpen(ws)
 
     await htmx.ajax('GET', `/api/agents/${agentId}/results`, '#task-results-body')
+    let el = document.getElementById("task-results-body")
+    el.addEventListener('htmx:oobBeforeSwap', function() {
+        let taskResultsPlaceholder = document.getElementById('task-results-placeholder')
+        if (taskResultsPlaceholder != null) {
+            taskResultsPlaceholder.remove()
+        }
+    })
 
     prompt(agentId)
     onDataDispose = term.onData(async function(evt) {
