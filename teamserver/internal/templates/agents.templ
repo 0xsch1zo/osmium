@@ -14,14 +14,14 @@ templ AgentsView(agents []teamserver.AgentView) {
     </div>
     // Not a table because css is a joke
     <div id="agent-table-body" class="overflow-auto min-h-0 rounded-md m-1 border-2 border-zinc-500">
-        for i, agent := range agents {
-        if i % 2 == 0 {
+        for _, agent := range agents {
+        if agent.AgentId % 2 == 0 {
         <div class="agent flex flex-row justify-between p-2 bg-neutral-950/90">
-            @agentView(agent.AgentId)
+            @agentView(agent)
         </div>
         } else {
         <div class="agent flex flex-row justify-between p-2 bg-neutral-900">
-            @agentView(agent.AgentId)
+            @agentView(agent)
         </div>
         }
         }
@@ -29,22 +29,25 @@ templ AgentsView(agents []teamserver.AgentView) {
 </div>
 }
 
-templ agentView(agentId uint64) {
-<p>{ strconv.FormatUint(agentId, 10) }</p>
+templ agentView(agent teamserver.AgentView) {
+<p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
 <button
     class="agent-reveal-on-hover bg-neutral-950 active:bg-neutral-600 border-1 border-neutral-600 px-2 mr-1 rounded-md text-sm"
-    onclick={ templ.JSFuncCall("termInit", agentId) }>
+    onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>
     Choose agent
 </button>
 }
 
-templ AgentOOB(agent *teamserver.Agent) {
+templ AgentOOB(agent teamserver.AgentView) {
 <div hx-swap-oob="beforeend:#agent-table-body">
-    <div class="agent flex flex-row justify-between">
-        <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
-        <button class="agent-reveal-on-hover" onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>
-            Choose agent
-        </button>
+    if agent.AgentId % 2 == 0 {
+    <div class="agent flex flex-row justify-between p-2 bg-neutral-950/90">
+        @agentView(agent)
     </div>
+    } else {
+    <div class="agent flex flex-row justify-between p-2 bg-neutral-900">
+        @agentView(agent)
+    </div>
+    }
 </div>
 }

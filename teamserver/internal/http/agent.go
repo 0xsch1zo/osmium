@@ -151,7 +151,8 @@ func (s *Server) AddAgentListen(w http.ResponseWriter, r *http.Request) {
 	wg.Add(1)
 	handle := s.AgentService.AddOnAgentAddedCallback(func(agent teamserver.Agent) {
 		buf := bytes.Buffer{}
-		err := templates.AgentOOB(&agent).Render(r.Context(), &buf)
+		agentView := teamserver.AgentView{AgentId: agent.AgentId}
+		err := templates.AgentOOB(agentView).Render(r.Context(), &buf)
 		if err != nil {
 			log.Print(err)
 		}
