@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cpr/cpr.h>
+#include <string>
 
 std::string exec(const std::string &cmd);
-
-cpr::Url endpointUrl(const std::string &endpoint);
