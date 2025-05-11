@@ -19,7 +19,14 @@ function prompt(agentId) {
     command = ""
     const prompt = `Agent ${agentId} >> `
     promptLength = prompt.length
-    term.write("\r\n" + prompt)
+    return prompt
+}
+function promptNewLine(agentId) {
+    term.write("\r\n" + prompt(agentId))
+}
+
+function promptNoNewLine(agentId) {
+    term.write(prompt(agentId))
 }
 
 async function termInit(agentId) {
@@ -43,17 +50,19 @@ async function termInit(agentId) {
         }
     })
 
-    prompt(agentId)
+    promptNewLine(agentId)
     onDataDispose = term.onData(async function(evt) {
         switch (evt) {
             case '\u0003': // Ctrl+C
                 term.write('^C');
-                prompt(agentId);
+                promptNewLine(agentId);
                 break;
             case '\r': // Enter
                 term.write('\r\n')
-                term.writeln(await runCommand(ws, command))
-                prompt(agentId)
+                if (command) {
+                    term.writeln(await runCommand(ws, command))
+                }
+                promptNoNewLine(agentId)
                 command = '';
                 break;
             case '\u007F': // Backspace (DEL)
