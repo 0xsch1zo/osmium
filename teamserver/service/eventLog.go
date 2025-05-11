@@ -41,7 +41,7 @@ func (es *EventLogService) GetEventLog() ([]string, error) {
 // Consider using normal function
 func (es *EventLogService) FormatEvent(event *teamserver.Event) string {
 	eventFormatBuilder := strings.Builder{}
-	eventFormatBuilder.WriteString(event.Time.Format(time.RFC3339) + " ")
+	eventFormatBuilder.WriteString(event.Time.Format(time.DateTime) + " ")
 
 	switch event.Type {
 	case teamserver.Info:
