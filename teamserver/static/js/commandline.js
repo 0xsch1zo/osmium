@@ -60,7 +60,7 @@ async function termInit(agentId) {
             case '\r': // Enter
                 term.write('\r\n')
                 if (command) {
-                    term.writeln(await runCommand(ws, command))
+                    term.writeln(formatOutput(await runCommand(ws, command)))
                 }
                 promptNoNewLine(agentId)
                 command = '';
@@ -83,6 +83,19 @@ async function termInit(agentId) {
 }
 
 window.termInit = termInit
+
+function formatOutput(output) {
+    const length = output.length
+    for (let i = 0; i < length; ++i) {
+        console.log(i)
+        console.log(output.length)
+        if (output[i] === '\n') {
+            output = output.slice(0, i) + '\r' + output.slice(i)
+            i++ // skip return just added
+        }
+    }
+    return output
+}
 
 function awaitSocketOpen(ws) {
     return new Promise(function(resolve) {
