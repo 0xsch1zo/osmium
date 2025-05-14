@@ -35,7 +35,7 @@ func TestGetTasks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	agentId, err := testedServices.agentService.AddAgent()
+	agent, err := testedServices.agentService.AddAgent()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,14 +46,20 @@ func TestGetTasks(t *testing.T) {
 		"test task 3",
 	}
 
+	var someTaskId uint64
 	for _, task := range tasksGiven {
-		_, err := testedServices.tasksService.AddTask(agentId.AgentId, task)
+		someTaskId, err = testedServices.tasksService.AddTask(agent.AgentId, task)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	tasksGot, err := testedServices.tasksService.GetTasks(agentId.AgentId)
+	err = testedServices.tasksService.UpdateTaskStatus(agent.AgentId, someTaskId, teamserver.TaskFinished)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tasksGot, err := testedServices.tasksService.GetTasks(agent.AgentId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +110,7 @@ func TestGetTasksWithStatuses(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tasksGot, err := testedServices.tasksService.GetTasks(agent.AgentId)
+	tasksGot, err := testedServices.tasksService.GetNewTasks(agent.AgentId)
 	if err != nil {
 		t.Fatal(err)
 	}

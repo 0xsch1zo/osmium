@@ -52,8 +52,27 @@ func (tr *TasksRepository) AddTask(agentId uint64, task string) (uint64, error) 
 }
 
 func (tr *TasksRepository) GetTasks(agentId uint64) ([]teamserver.Task, error) {
+	query := "SELECT TaskId, Task FROM Tasks WHERE AgentId = ?"
+	tasksSqlRows, err := tr.databaseHandle.Query(query, agentId)
+	if err != nil {
+		return nil, err
+	}
+
+	var tasks []teamserver.Task
+	for tasksSqlRows.Next() {
+		tasks = append(tasks, teamserver.Task{})
+		err = tasksSqlRows.Scan(&(tasks[len(tasks)-1].TaskId), &(tasks[len(tasks)-1].Task))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return tasks, nil
+}
+
+func (tr *TasksRepository) GetTasksWithStatus(agentId uint64, status teamserver.TaskStatus) ([]teamserver.Task, error) {
 	query := "SELECT TaskId, Task FROM Tasks WHERE AgentId = ? AND Status = ?"
-	tasksSqlRows, err := tr.databaseHandle.Query(query, agentId, teamserver.TaskUnfinished)
+	tasksSqlRows, err := tr.databaseHandle.Query(query, agentId, status)
 	if err != nil {
 		return nil, err
 	}

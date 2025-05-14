@@ -38,6 +38,7 @@ type AgentRepository interface {
 type TasksRepository interface {
 	AddTask(agentId uint64, task string) (uint64, error)
 	GetTasks(agentId uint64) ([]teamserver.Task, error)
+	GetTasksWithStatus(agentId uint64, status teamserver.TaskStatus) ([]teamserver.Task, error)
 	TaskExists(agentId uint64, taskId uint64) (bool, error)
 	UpdateTaskStatus(agentId uint64, taskId uint64, status teamserver.TaskStatus) error
 }

@@ -42,6 +42,21 @@ func (ts *TasksService) GetTasks(agentId uint64) ([]teamserver.Task, error) {
 	return tasks, nil
 }
 
+func (ts *TasksService) GetNewTasks(agentId uint64) ([]teamserver.Task, error) {
+	err := ts.agentService.AgentExists(agentId)
+	if err != nil {
+		return nil, err
+	}
+
+	tasks, err := ts.tasksRepository.GetTasksWithStatus(agentId, teamserver.TaskUnfinished)
+	if err != nil {
+		ServiceServerErrHandler(err, tasksServiceStr, ts.eventLogService)
+		return nil, err
+	}
+
+	return tasks, nil
+}
+
 func (ts *TasksService) TaskExists(agentId uint64, taskId uint64) error {
 	err := ts.agentService.AgentExists(agentId)
 	if err != nil {

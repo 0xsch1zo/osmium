@@ -36,6 +36,28 @@ func (server *Server) AgentRegister(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (server *Server) GetNewTasks(w http.ResponseWriter, r *http.Request) {
+	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
+	if err != nil {
+		api.RequestErrorHandler(w, err, http.StatusBadRequest) // Clients error
+		return
+	}
+
+	tasks, err := server.TasksService.GetNewTasks(agentId)
+	if err != nil {
+		ApiErrorHandler(err, w)
+		return
+	}
+
+	resp := TasksToGetTasksResponse(tasks)
+
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		ApiErrorHandler(fmt.Errorf(errSerializationFmt, err), w)
+		return
+	}
+}
+
 func (server *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 	agentId, err := strconv.ParseUint(r.PathValue("agentId"), 10, 64)
 	if err != nil {
