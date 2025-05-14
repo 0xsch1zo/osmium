@@ -65,24 +65,59 @@ async function termInit(agentId) {
                 promptNoNewLine(agentId)
                 command = '';
                 break;
-            case '\u007F': // Backspace (DEL)
+            case '\u007F': // Backspace
                 if (term._core.buffer.x > promptLength) {
-                    term.write('\b \b');
-                    if (command.length > 0) {
-                        command = command.slice(0, command.length - 1);
+                    if (term.buffer.normal.cursorX != promptLength + command.length) {
+                        const originalPosition = term.buffer.normal.cursorX
+                        const commandIndex = originalPosition - promptLength
+                        term.write('\b')
+                        term.write(command.slice(commandIndex) + ' ') // overwrite the last character
+                        command = command.slice(0, commandIndex - 1) + command.slice(commandIndex)
+                        const onCursorMoveDispose = term.onCursorMove(() => {
+                            term.write(`\x1b[${term.buffer.normal.cursorX - commandIndex - promptLength + 1}D`)
+                            onCursorMoveDispose.dispose()
+                        })
+                    } else {
+                        term.write('\b \b');
+                        if (command.length > 0) {
+                            command = command.slice(0, command.length - 1);
+                        }
                     }
                 }
                 break;
+            case '\x1b[C': // cursor right
+                moveCursor('\x1b[C', term)
+                break
+            case '\x1b[D': // cursor left
+                moveCursor('\x1b[D', term)
+                break
             default:
                 if (evt >= String.fromCharCode(0x20) && evt <= String.fromCharCode(0x7E) || evt >= '\u00a0') {
-                    command += evt;
-                    term.write(evt);
+                    if (term.buffer.normal.cursorX != promptLength + command.length) {
+                        const commandIndex = term.buffer.normal.cursorX - promptLength
+                        term.write(evt + command.slice(commandIndex))
+                        command = command.slice(0, commandIndex) + evt + command.slice(commandIndex)
+                        term.write(`\x1b[${command.length - commandIndex - 1}D`)
+                    } else {
+                        command += evt;
+                        term.write(evt);
+                    }
                 }
         }
     })
 }
 
 window.termInit = termInit
+
+function moveCursor(charcode, term) {
+    if (term.buffer.normal.cursorX > promptLength && term.buffer.normal.cursorX < promptLength + command.length) {
+        term.write(charcode)
+    } else if (term.buffer.normal.cursorX == promptLength && charcode == '\x1b[C') {
+        term.write(charcode)
+    } else if (term.buffer.normal.cursorX == promptLength + command.length && charcode == '\x1b[D') {
+        term.write(charcode)
+    }
+}
 
 function formatOutput(output) {
     const length = output.length
