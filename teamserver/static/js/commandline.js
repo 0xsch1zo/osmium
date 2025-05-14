@@ -51,39 +51,17 @@ async function termInit(agentId) {
     })
 
     promptNewLine(agentId)
-    onDataDispose = term.onData(async function(evt) {
+    onDataDispose = term.onData(async (evt) => {
         switch (evt) {
             case '\u0003': // Ctrl+C
                 term.write('^C');
                 promptNewLine(agentId);
                 break;
             case '\r': // Enter
-                term.write('\r\n')
-                if (command) {
-                    term.writeln(formatOutput(await runCommand(ws, command)))
-                }
-                promptNoNewLine(agentId)
-                command = '';
+                await handleCommand(ws, agentId, term)
                 break;
             case '\u007F': // Backspace
-                if (term._core.buffer.x > promptLength) {
-                    if (term.buffer.normal.cursorX != promptLength + command.length) {
-                        const originalPosition = term.buffer.normal.cursorX
-                        const commandIndex = originalPosition - promptLength
-                        term.write('\b')
-                        term.write(command.slice(commandIndex) + ' ') // overwrite the last character
-                        command = command.slice(0, commandIndex - 1) + command.slice(commandIndex)
-                        const onCursorMoveDispose = term.onCursorMove(() => {
-                            term.write(`\x1b[${term.buffer.normal.cursorX - commandIndex - promptLength + 1}D`)
-                            onCursorMoveDispose.dispose()
-                        })
-                    } else {
-                        term.write('\b \b');
-                        if (command.length > 0) {
-                            command = command.slice(0, command.length - 1);
-                        }
-                    }
-                }
+                backspace(term)
                 break;
             case '\x1b[C': // cursor right
                 moveCursor('\x1b[C', term)
@@ -92,22 +70,57 @@ async function termInit(agentId) {
                 moveCursor('\x1b[D', term)
                 break
             default:
-                if (evt >= String.fromCharCode(0x20) && evt <= String.fromCharCode(0x7E) || evt >= '\u00a0') {
-                    if (term.buffer.normal.cursorX != promptLength + command.length) {
-                        const commandIndex = term.buffer.normal.cursorX - promptLength
-                        term.write(evt + command.slice(commandIndex))
-                        command = command.slice(0, commandIndex) + evt + command.slice(commandIndex)
-                        term.write(`\x1b[${command.length - commandIndex - 1}D`)
-                    } else {
-                        command += evt;
-                        term.write(evt);
-                    }
-                }
+                handleCharacter(evt, term)
         }
     })
 }
 
 window.termInit = termInit
+
+async function handleCommand(ws, agentId, term) {
+    term.write('\r\n')
+    if (command) {
+        term.writeln(formatOutput(await runCommand(ws, command)))
+    }
+    promptNoNewLine(agentId)
+    command = '';
+}
+
+function handleCharacter(evt, term) {
+    if (evt >= String.fromCharCode(0x20) && evt <= String.fromCharCode(0x7E) || evt >= '\u00a0') {
+        if (term.buffer.normal.cursorX != promptLength + command.length) {
+            const commandIndex = term.buffer.normal.cursorX - promptLength
+            term.write(evt + command.slice(commandIndex))
+            command = command.slice(0, commandIndex) + evt + command.slice(commandIndex)
+            term.write(`\x1b[${command.length - commandIndex - 1}D`)
+        } else {
+            command += evt;
+            term.write(evt);
+        }
+    }
+}
+
+function backspace(term) {
+    if (term._core.buffer.x <= promptLength)
+        return
+
+    if (term.buffer.normal.cursorX != promptLength + command.length) {
+        const originalPosition = term.buffer.normal.cursorX
+        const commandIndex = originalPosition - promptLength
+        term.write('\b')
+        term.write(command.slice(commandIndex) + ' ') // overwrite the last character
+        command = command.slice(0, commandIndex - 1) + command.slice(commandIndex)
+        const onCursorMoveDispose = term.onCursorMove(() => {
+            term.write(`\x1b[${term.buffer.normal.cursorX - commandIndex - promptLength + 1}D`)
+            onCursorMoveDispose.dispose()
+        })
+    } else {
+        term.write('\b \b');
+        if (command.length > 0) {
+            command = command.slice(0, command.length - 1);
+        }
+    }
+}
 
 function moveCursor(charcode, term) {
     if (term.buffer.normal.cursorX > promptLength && term.buffer.normal.cursorX < promptLength + command.length) {
@@ -122,8 +135,6 @@ function moveCursor(charcode, term) {
 function formatOutput(output) {
     const length = output.length
     for (let i = 0; i < length; ++i) {
-        console.log(i)
-        console.log(output.length)
         if (output[i] === '\n') {
             output = output.slice(0, i) + '\r' + output.slice(i)
             i++ // skip return just added
