@@ -3,5 +3,4 @@ change jwt signing algo
 limit password length to prevent ddos
 log better for client erorrs
 pass more to ServiceServerErrHandler as argument to get better errors
-handle better auth error during token refresh
 multiline support
