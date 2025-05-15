@@ -41,6 +41,10 @@ async function termInit(agentId) {
     term.reset()
     term.open(document.getElementById('commandline'))
     fitAddon.fit()
+    addEventListener("resize", () => {
+        fitAddon.fit()
+    })
+
     const ws = new WebSocket(`/api/agents/${agentId}/socket`)
     await awaitSocketOpen(ws)
 
