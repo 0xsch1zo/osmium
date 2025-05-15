@@ -29,8 +29,9 @@ const (
 )
 
 type AgentRepository interface {
-	AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error)
+	AddAgent(rsaPriv *rsa.PrivateKey, agentInfo teamserver.AgentRegisterInfo) (*teamserver.Agent, error)
 	GetAgent(agentId uint64) (*teamserver.Agent, error)
+	UpdateLastCallbackTime(agentId uint64) error
 	ListAgents() ([]teamserver.AgentView, error)
 	AgentExists(agentId uint64) (bool, error)
 }

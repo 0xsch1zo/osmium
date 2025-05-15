@@ -16,10 +16,23 @@ const (
 type Agent struct {
 	AgentId    uint64
 	PrivateKey *rsa.PrivateKey
+	AgentInfo  AgentInfo
+}
+
+type AgentRegisterInfo struct {
+	Hostname string
+	Username string
+}
+
+type AgentInfo struct {
+	Hostname     string
+	Username     string
+	LastCallback time.Time
 }
 
 type AgentView struct {
-	AgentId uint64
+	AgentId   uint64
+	AgentInfo AgentInfo
 }
 
 type Task struct {

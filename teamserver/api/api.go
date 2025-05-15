@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+type RegisterRequest struct {
+	Username string
+	Hostname string
+}
+
 type RegisterResponse struct {
 	AgentId   uint64
 	PublicKey string

@@ -54,6 +54,11 @@ func (ts *TasksService) GetNewTasks(agentId uint64) ([]teamserver.Task, error) {
 		return nil, err
 	}
 
+	err = ts.agentService.UpdateLastCallbackTime(agentId)
+	if err != nil {
+		return nil, err
+	}
+
 	return tasks, nil
 }
 

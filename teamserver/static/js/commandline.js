@@ -11,7 +11,7 @@ var term = new Terminal({
 const fitAddon = new FitAddon();
 term.loadAddon(fitAddon)
 
-var onDataDispose = term.onData()
+var onDataDispose = term.onData(() => { })
 var command = ""
 var promptLength = 0
 var tasks = {}

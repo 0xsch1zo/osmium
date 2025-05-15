@@ -17,7 +17,18 @@ import (
 )
 
 func (server *Server) AgentRegister(w http.ResponseWriter, r *http.Request) {
-	agent, err := server.AgentService.AddAgent()
+	var registerRequest api.RegisterRequest
+	err := json.NewDecoder(r.Body).Decode(&registerRequest)
+	if err != nil {
+		api.RequestErrorHandler(w, err, http.StatusBadRequest) // Clients error
+		return
+	}
+
+	agent, err := server.AgentService.AddAgent(teamserver.AgentRegisterInfo{
+		Hostname: registerRequest.Hostname,
+		Username: registerRequest.Username,
+	})
+
 	if err != nil {
 		ApiErrorHandler(err, w)
 		return

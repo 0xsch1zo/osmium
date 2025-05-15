@@ -28,6 +28,11 @@ func (trs *TaskResultsService) SaveTaskResult(agentId uint64, taskResult *teamse
 		return err
 	}
 
+	err = trs.agentService.UpdateLastCallbackTime(agentId)
+	if err != nil {
+		return err
+	}
+
 	for _, callback := range trs.callbacks {
 		if callback != nil {
 			go callback(agentId, *taskResult)

@@ -3,15 +3,16 @@ package sqlite
 import (
 	"crypto/rsa"
 	"database/sql"
+	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
 )
 
-func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent, error) {
+func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey, agentInfo teamserver.AgentRegisterInfo) (*teamserver.Agent, error) {
 	// race condition
-	query := "INSERT INTO Agents (AgentId, PrivateKey) values(NULL, ?);"
-	_, err := ar.databaseHandle.Exec(query, tools.PrivRsaToPem(rsaPriv))
+	query := "INSERT INTO Agents (AgentId, PrivateKey, Hostname, Username, LastCallback) values(NULL, ?, ?, ?, 0);"
+	_, err := ar.databaseHandle.Exec(query, tools.PrivRsaToPem(rsaPriv), agentInfo.Hostname, agentInfo.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -29,19 +30,33 @@ func (ar *AgentRepository) AddAgent(rsaPriv *rsa.PrivateKey) (*teamserver.Agent,
 	return &teamserver.Agent{
 		AgentId:    AgentId,
 		PrivateKey: rsaPriv,
+		AgentInfo: teamserver.AgentInfo{
+			Hostname:     agentInfo.Hostname,
+			Username:     agentInfo.Username,
+			LastCallback: time.Unix(0, 0),
+		},
 	}, nil
 }
 
 func (ar *AgentRepository) GetAgent(agentId uint64) (*teamserver.Agent, error) {
-	query := "SELECT AgentId, PrivateKey FROM Agents WHERE AgentId = ?"
+	query := "SELECT AgentId, PrivateKey, Hostname, Username, LastCallback FROM Agents WHERE AgentId = ?"
 	AgentSqlRow := ar.databaseHandle.QueryRow(query, agentId)
 
 	var agent teamserver.Agent
 	var agentPrivateKeyPem string
-	err := AgentSqlRow.Scan(&agent.AgentId, &agentPrivateKeyPem)
+	var lastCallbackUnix int64
+	err := AgentSqlRow.Scan(
+		&agent.AgentId,
+		&agentPrivateKeyPem,
+		&agent.AgentInfo.Hostname,
+		&agent.AgentInfo.Username,
+		&lastCallbackUnix,
+	)
 	if err != nil {
 		return nil, err
 	}
+
+	agent.AgentInfo.LastCallback = time.Unix(lastCallbackUnix, 0)
 
 	agent.PrivateKey, err = tools.PemToPrivRsa(agentPrivateKeyPem)
 	if err != nil {
@@ -66,7 +81,7 @@ func (ar *AgentRepository) AgentExists(agentId uint64) (bool, error) {
 }
 
 func (ar *AgentRepository) ListAgents() ([]teamserver.AgentView, error) {
-	query := "SELECT AgentId FROM Agents"
+	query := "SELECT AgentId, Hostname, Username, LastCallback FROM Agents"
 	sqlRow, err := ar.databaseHandle.Query(query)
 	if err != nil {
 		return nil, err
@@ -74,14 +89,28 @@ func (ar *AgentRepository) ListAgents() ([]teamserver.AgentView, error) {
 
 	var AgentViews []teamserver.AgentView
 	for sqlRow.Next() {
+		var lastCallbackUnix int64
 		var agent teamserver.AgentView
-		err = sqlRow.Scan(&agent.AgentId)
+		err = sqlRow.Scan(
+			&agent.AgentId,
+			&agent.AgentInfo.Hostname,
+			&agent.AgentInfo.Username,
+			&lastCallbackUnix,
+		)
 		if err != nil {
 			return nil, err
 		}
+
+		agent.AgentInfo.LastCallback = time.Unix(lastCallbackUnix, 0)
 
 		AgentViews = append(AgentViews, agent)
 	}
 
 	return AgentViews, nil
+}
+
+func (ar *AgentRepository) UpdateLastCallbackTime(agentId uint64) error {
+	query := "UPDATE Agents SET LastCallback = ? WHERE AgentId = ?"
+	_, err := ar.databaseHandle.Exec(query, time.Now().Unix(), agentId)
+	return err
 }

@@ -9,14 +9,14 @@ import (
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
 )
 
-func (as *AgentService) AddAgent() (*teamserver.Agent, error) {
+func (as *AgentService) AddAgent(agentInfo teamserver.AgentRegisterInfo) (*teamserver.Agent, error) {
 	rsaPriv, err := tools.GenerateKey()
 	if err != nil {
 		ServiceServerErrHandler(err, agentServiceStr, as.eventLogService)
 		return nil, err
 	}
 
-	agent, err := as.agentRepository.AddAgent(rsaPriv)
+	agent, err := as.agentRepository.AddAgent(rsaPriv, agentInfo)
 	if err != nil {
 		ServiceServerErrHandler(err, agentServiceStr, as.eventLogService)
 		return nil, err
@@ -75,6 +75,15 @@ func (as *AgentService) ListAgents() ([]teamserver.AgentView, error) {
 		return nil, err
 	}
 	return agentViews, nil
+}
+
+func (as *AgentService) UpdateLastCallbackTime(agentId uint64) error {
+	err := as.agentRepository.UpdateLastCallbackTime(agentId)
+	if err != nil {
+		ServiceServerErrHandler(err, agentServiceStr, as.eventLogService)
+		return err
+	}
+	return nil
 }
 
 func (as *AgentService) AddOnAgentAddedCallback(callback func(teamserver.Agent)) teamserver.CallbackHandle {

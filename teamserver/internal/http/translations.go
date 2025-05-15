@@ -41,6 +41,7 @@ func TaskResultsOutToGetTaskResultsResponse(taskResultOut *teamserver.TaskResult
 	}
 }
 
+/*
 func AgentViewsToListAgentsResponse(agentViews []teamserver.AgentView) *api.ListAgentsResponse {
 	var listAgentsResponse api.ListAgentsResponse
 
@@ -49,4 +50,4 @@ func AgentViewsToListAgentsResponse(agentViews []teamserver.AgentView) *api.List
 	}
 
 	return &listAgentsResponse
-}
+}*/
