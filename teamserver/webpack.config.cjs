@@ -3,4 +3,5 @@ module.exports = {
         './static/js/commandline.js',
         './static/js/auth_refresh.js'
     ],
+    mode: 'development'
 };

@@ -14,6 +14,8 @@ term.loadAddon(fitAddon)
 var onDataDispose = term.onData()
 var command = ""
 var promptLength = 0
+var tasks = {}
+var historyIndex = 0
 
 function prompt(agentId) {
     command = ""
@@ -21,6 +23,7 @@ function prompt(agentId) {
     promptLength = prompt.length
     return prompt
 }
+
 function promptNewLine(agentId) {
     term.write("\r\n" + prompt(agentId))
 }
@@ -50,6 +53,8 @@ async function termInit(agentId) {
         }
     })
 
+    await historyInit(agentId)
+
     promptNewLine(agentId)
     onDataDispose = term.onData(async (evt) => {
         switch (evt) {
@@ -63,6 +68,19 @@ async function termInit(agentId) {
             case '\u007F': // Backspace
                 backspace(term)
                 break;
+            case '\x1b[A':
+                if (historyIndex < tasks.length) // We sustract from the index so it's fine, 0 would result in out of bounds
+                    handleHistory(++historyIndex, term)
+                break
+            case '\x1b[B':
+                if (historyIndex > 1)
+                    handleHistory(--historyIndex, term)
+                else if (historyIndex == 1) {
+                    handleHistory(-1, term)
+                    historyIndex--
+                }
+
+                break
             case '\x1b[C': // cursor right
                 moveCursor('\x1b[C', term)
                 break
@@ -76,6 +94,36 @@ async function termInit(agentId) {
 }
 
 window.termInit = termInit
+
+function handleHistory(index, term) {
+    if (command.length > 0) {
+        let emptyStr = ' '.repeat(command.length)
+        term.write(`\x1b[${command.length}D`) // Go back to prompt
+        term.write(emptyStr) // clear the previously displayed command
+        term.write(`\x1b[${command.length}D`)
+    }
+
+    command = fetchHistory(index)
+    term.write(command)
+}
+
+async function historyInit(agentId) {
+    let r = await fetch(`/api/agents/${agentId}/tasks/all`)
+    historyIndex = 0
+    let tasksObject = await r.json()
+    tasks = tasksObject.Tasks
+}
+
+function fetchHistory(index) {
+    if (index < 0)
+        return ''
+
+    if (index > tasks.length) {
+        return tasks[0].Task
+    }
+
+    return tasks[tasks.length - index].Task
+}
 
 async function handleCommand(ws, agentId, term) {
     term.write('\r\n')
