@@ -10,41 +10,51 @@ templ AgentsView(agents []teamserver.AgentView) {
 <div id="Agents" class="basis-[50svw] dashboard-element flex flex-col">
     <div id="agent-dummy" hx-ext="sse" sse-connect="/api/agents/register/listen" sse-swap="agent" hx-swap="none"></div>
     <h2 class="dashboard-element-header">Agents</h2>
-    <div id="agent-table-head" class="flex flex-row justify-between ml-1">
-        <h4 class="text-indigo-600 font-medium">Agent Id</h4>
-        <h4 class="text-indigo-600 font-medium">Hostname</h4>
-        <h4 class="text-indigo-600 font-medium">Username</h4>
-        <h4 class="text-indigo-600 font-medium">Last callback</h4>
-    </div>
-    // Not a table because css is a joke
-    <div id="agent-table-body"
-        class="grow overflow-auto min-h-0 rounded-md m-1 border-2 border-zinc-500 bg-neutral-950/90">
-        if len(agents) == 0 {
-        <h5 class="text-color-neutral-500/10 italic">No agents registered yet...</h5>
-        }
-        for _, agent := range agents {
-        if agent.AgentId % 2 == 0 {
-        <div class="agent flex flex-row justify-between p-2 bg-neutral-950/90">
-            @agentView(agent)
+    <div class="grow rounded-md m-1 border-2 border-zinc-500 bg-neutral-900 flex flex-col">
+        <div class="ml-1 grid grid-cols-5 gap-2">
+            <h4 class="text-indigo-500 font-medium">Agent Id</h4>
+            <h4 class="text-indigo-500 font-medium">Hostname</h4>
+            <h4 class="text-indigo-500 font-medium">Username</h4>
+            <h4 class="text-indigo-500 font-medium">Last callback</h4>
         </div>
-        } else {
-        <div class="agent flex flex-row justify-between p-2 bg-neutral-900">
-            @agentView(agent)
+        <div id="agent-table-body"
+            class="grow overflow-auto rounded-md border-t-2 border-zinc-500 min-h-0 bg-neutral-950/90">
+            if len(agents) == 0 {
+            <h5 class="text-color-neutral-500/10 italic">No agents registered yet...</h5>
+            }
+            for _, agent := range agents {
+            @agentEntry(agent)
+            }
         </div>
-        }
-        }
+        <div class="grow bg-neutral-950/90"></div>
     </div>
 </div>
 }
 
-templ agentView(agent teamserver.AgentView) {
-<p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
-<p>{ agent.AgentInfo.Hostname }</p>
-<p>{ agent.AgentInfo.Username }</p>
-if agent.AgentInfo.LastCallback.Unix() == 0 {
-<p>-</p>
+templ agentEntry(agent teamserver.AgentView) {
+if agent.AgentId % 2 == 1 {
+// Could make this a separate func but this has better locality of behaviour in terms of grid cols
+<div class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-950/90">
+    <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
+    <p>{ agent.AgentInfo.Hostname }</p>
+    <p>{ agent.AgentInfo.Username }</p>
+    if agent.AgentInfo.LastCallback.Unix() == 0 {
+    <p>-</p>
+    } else {
+    <p>{ agent.AgentInfo.LastCallback.Format(time.DateTime) }</p>
+    }
+</div>
 } else {
-<p>{ agent.AgentInfo.LastCallback.Format(time.DateTime) }</p>
+<div class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-900">
+    <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
+    <p>{ agent.AgentInfo.Hostname }</p>
+    <p>{ agent.AgentInfo.Username }</p>
+    if agent.AgentInfo.LastCallback.Unix() == 0 {
+    <p>-</p>
+    } else {
+    <p>{ agent.AgentInfo.LastCallback.Format(time.DateTime) }</p>
+    }
+</div>
 }
 <button
     class="agent-reveal-on-hover bg-neutral-950 active:bg-neutral-600 border-1 border-neutral-600 px-2 mr-1 rounded-md text-sm"
@@ -55,14 +65,6 @@ if agent.AgentInfo.LastCallback.Unix() == 0 {
 
 templ AgentOOB(agent teamserver.AgentView) {
 <div hx-swap-oob="beforeend:#agent-table-body">
-    if agent.AgentId % 2 == 0 {
-    <div class="agent flex flex-row justify-between p-2 bg-neutral-950/90">
-        @agentView(agent)
-    </div>
-    } else {
-    <div class="agent flex flex-row justify-between p-2 bg-neutral-900">
-        @agentView(agent)
-    </div>
-    }
+    @agentEntry(agent)
 </div>
 }
