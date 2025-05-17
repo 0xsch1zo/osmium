@@ -70,6 +70,7 @@ func (auths *AuthorizationService) Login(username, password string) (*teamserver
 
 func (auths *AuthorizationService) Authorize(token string) error {
 	authorized, err := tools.VerifyJWT(token, auths.jwtKey)
+
 	if err != nil {
 		auths.eventLogService.LogEvent(teamserver.Warn, "Unauthorized request was made")
 		return teamserver.NewClientError(err.Error(), http.StatusUnauthorized)

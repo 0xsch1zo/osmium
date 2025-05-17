@@ -7,12 +7,12 @@ import (
 )
 
 templ AgentsView(agents []teamserver.AgentView) {
-<div id="Agents" class="basis-[50svw] dashboard-element flex flex-col">
+<div id="Agents" class="basis-[50svw] min-h-0 max-h-full dashboard-element flex flex-col">
     <div id="agent-dummy" hx-ext="sse" sse-connect="/api/agents/register/listen" sse-swap="agent" hx-swap="none"></div>
     <div id="agent-updated-dummy" hx-ext="sse" sse-connect="/api/agents/callbackTime/listen" sse-swap="agent"
         hx-swap="none"></div>
     <h2 class="dashboard-element-header">Agents</h2>
-    <div class="grow rounded-md m-1 border-2 border-zinc-500 bg-neutral-900 flex flex-col">
+    <div class="grow rounded-md m-1 border-2 border-zinc-500 bg-neutral-900 flex flex-col min-h-0">
         <div class="ml-1 grid grid-cols-5 gap-2">
             <h4 class="text-indigo-500 font-medium">Agent Id</h4>
             <h4 class="text-indigo-500 font-medium">Hostname</h4>

@@ -17,9 +17,9 @@ templ Dashboard(agentsView templ.Component, eventLogView templ.Component) {
 
 <body>
     <div id="dashboard" class="bg-neutral-950 text-gray-100 flex flex-col h-svh">
-        <div id="upper-dashboard" class="flex flex-col max-h-1/2 min-h-1/2">
+        <div id="upper-dashboard" class="flex flex-col max-h-1/2 h-1/2 min-h-0">
             <h1 class="text-emerald-300 text-3xl font-bold ml-3">Osmium C<span class="text-indigo-600">2</span></h1>
-            <div class="grow flex flex-row justify-between">
+            <div class="flex flex-row justify-between min-h-0">
                 @agentsView
                 @eventLogView
             </div>

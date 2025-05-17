@@ -1,7 +1,7 @@
 package templates
 
 templ EventLogView(eventLog []string) {
-<div class="dashboard-element basis-[50svw] flex flex-col">
+<div class="dashboard-element basis-[50svw] max-h-full flex flex-col">
     <h2 class="dashboard-element-header">Event log</h2>
     <div id="event-log-dummy" hx-ext="sse" sse-connect="/api/eventLog" sse-swap="event" hx-swap="none"
         hx-on::oob-after-swap="let eventLog = document.getElementById('event-log');
