@@ -31,7 +31,9 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 	tasksRepo := (*db).NewTasksRepository()
 	taskResultsRepo := (*db).NewTaskResultsRepository()
 	authRepo := (*db).NewAuthorizationRepository()
+
 	eventLogService := service.NewEventLogService((*db).NewEventLogRepository())
+	agentService := service.NewAgentService(agentRepo, eventLogService)
 
 	server := Server{
 		mux: mux,
@@ -40,9 +42,9 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 			Handler: mux,
 		},
 		config:               config,
-		AgentService:         service.NewAgentService(agentRepo, eventLogService),
-		TasksService:         service.NewTasksService(tasksRepo, agentRepo, eventLogService),
-		TaskResultsService:   service.NewTaskResultsService(taskResultsRepo, agentRepo, tasksRepo, eventLogService),
+		AgentService:         agentService,
+		TasksService:         service.NewTasksService(tasksRepo, agentService, eventLogService),
+		TaskResultsService:   service.NewTaskResultsService(taskResultsRepo, agentService, tasksRepo, eventLogService),
 		AuthorizationService: service.NewAuthorizationService(authRepo, os.Getenv("JWT_SECRET"), eventLogService),
 		EventLogService:      eventLogService,
 	}
@@ -113,6 +115,12 @@ func (server *Server) registerAgentApiRouter() {
 	router.Handle("GET /agents/register/listen", server.Authenticate(
 		ServerSentEvents(
 			http.HandlerFunc(server.AddAgentListen),
+		)),
+	)
+	// reuse this for other agent updates if possible
+	router.Handle("GET /agents/callbackTime/listen", server.Authenticate(
+		ServerSentEvents(
+			http.HandlerFunc(server.CallbackTimeUpdatedListen),
 		)),
 	)
 

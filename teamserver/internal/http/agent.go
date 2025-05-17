@@ -184,8 +184,29 @@ func (s *Server) AddAgentListen(w http.ResponseWriter, r *http.Request) {
 	wg.Add(1)
 	handle := s.AgentService.AddOnAgentAddedCallback(func(agent teamserver.Agent) {
 		buf := bytes.Buffer{}
-		agentView := teamserver.AgentView{AgentId: agent.AgentId}
+		agentView := teamserver.AgentView{AgentId: agent.AgentId, AgentInfo: agent.AgentInfo}
 		err := templates.AgentOOB(agentView).Render(r.Context(), &buf)
+		if err != nil {
+			log.Print(err)
+		}
+
+		err = sendSSE(w, "agent", buf.String())
+		if err != nil {
+			log.Print(err)
+		}
+	})
+	defer s.AgentService.RemoveOnAgentAddedCallback(handle)
+
+	wg.Wait()
+}
+
+func (s *Server) CallbackTimeUpdatedListen(w http.ResponseWriter, r *http.Request) {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	handle := s.AgentService.AddOnCallbackTimeUpdatedCallback(func(agent teamserver.Agent) {
+		buf := bytes.Buffer{}
+		agentView := teamserver.AgentView{AgentId: agent.AgentId, AgentInfo: agent.AgentInfo}
+		err := templates.UpdatedAgentOOB(agentView).Render(r.Context(), &buf)
 		if err != nil {
 			log.Print(err)
 		}

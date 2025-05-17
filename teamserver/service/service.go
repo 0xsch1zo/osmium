@@ -63,9 +63,10 @@ type EventLogRepository interface {
 }
 
 type AgentService struct {
-	agentRepository AgentRepository
-	eventLogService *EventLogService
-	callbacks       []func(teamserver.Agent)
+	agentRepository                AgentRepository
+	eventLogService                *EventLogService
+	onAgentAddedCallbacks          []func(teamserver.Agent)
+	onCallbackTimeUpdatedCallbacks []func(teamserver.Agent)
 }
 
 type TasksService struct {
@@ -100,9 +101,9 @@ func NewAgentService(agentRepository *AgentRepository, eventLogService *EventLog
 	}
 }
 
-func NewTasksService(tasksRepository *TasksRepository, agentRepository *AgentRepository, eventLogService *EventLogService) *TasksService {
+func NewTasksService(tasksRepository *TasksRepository, agentService *AgentService, eventLogService *EventLogService) *TasksService {
 	return &TasksService{
-		agentService:    NewAgentService(agentRepository, eventLogService),
+		agentService:    agentService,
 		tasksRepository: *tasksRepository,
 		eventLogService: eventLogService,
 	}
@@ -110,13 +111,13 @@ func NewTasksService(tasksRepository *TasksRepository, agentRepository *AgentRep
 
 func NewTaskResultsService(
 	taskResultsRepository *TaskResultsRepository,
-	agentRepository *AgentRepository,
+	agentService *AgentService,
 	tasksRepository *TasksRepository,
 	eventLogService *EventLogService,
 ) *TaskResultsService {
 	return &TaskResultsService{
-		agentService:          NewAgentService(agentRepository, eventLogService),
-		tasksService:          NewTasksService(tasksRepository, agentRepository, eventLogService),
+		agentService:          agentService,
+		tasksService:          NewTasksService(tasksRepository, agentService, eventLogService),
 		taskResultsRepository: *taskResultsRepository,
 		eventLogService:       eventLogService,
 	}

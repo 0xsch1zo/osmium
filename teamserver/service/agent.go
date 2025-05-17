@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"net/http"
-	"sync"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/tools"
@@ -22,14 +21,9 @@ func (as *AgentService) AddAgent(agentInfo teamserver.AgentRegisterInfo) (*teams
 		return nil, err
 	}
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(as.callbacks))
-	for _, listener := range as.callbacks {
+	for _, listener := range as.onAgentAddedCallbacks {
 		if listener != nil {
-			go func() {
-				listener(*agent)
-				wg.Done()
-			}()
+			go listener(*agent)
 		}
 	}
 
@@ -83,18 +77,44 @@ func (as *AgentService) UpdateLastCallbackTime(agentId uint64) error {
 		ServiceServerErrHandler(err, agentServiceStr, as.eventLogService)
 		return err
 	}
+
+	agent, err := as.GetAgent(agentId)
+	if err != nil {
+		return err
+	}
+
+	for _, callback := range as.onCallbackTimeUpdatedCallbacks {
+		if callback != nil {
+			go callback(*agent)
+		}
+	}
+
 	return nil
 }
 
 func (as *AgentService) AddOnAgentAddedCallback(callback func(teamserver.Agent)) teamserver.CallbackHandle {
-	as.callbacks = append(as.callbacks, callback)
-	return teamserver.CallbackHandle(len(as.callbacks) - 1)
+	as.onAgentAddedCallbacks = append(as.onAgentAddedCallbacks, callback)
+	return teamserver.CallbackHandle(len(as.onAgentAddedCallbacks) - 1)
 }
 
 func (as *AgentService) RemoveOnAgentAddedCallback(handle teamserver.CallbackHandle) {
-	for i := range as.callbacks {
+	for i := range as.onAgentAddedCallbacks {
 		if teamserver.CallbackHandle(i) == handle {
-			as.callbacks[i] = nil
+			as.onAgentAddedCallbacks[i] = nil
+			break
+		}
+	}
+}
+
+func (as *AgentService) AddOnCallbackTimeUpdatedCallback(callback func(teamserver.Agent)) teamserver.CallbackHandle {
+	as.onCallbackTimeUpdatedCallbacks = append(as.onCallbackTimeUpdatedCallbacks, callback)
+	return teamserver.CallbackHandle(len(as.onCallbackTimeUpdatedCallbacks) - 1)
+}
+
+func (as *AgentService) RemoveOnCallbackTimeUpdatedCallback(handle teamserver.CallbackHandle) {
+	for i := range as.onCallbackTimeUpdatedCallbacks {
+		if teamserver.CallbackHandle(i) == handle {
+			as.onCallbackTimeUpdatedCallbacks[i] = nil
 			break
 		}
 	}

@@ -9,6 +9,8 @@ import (
 templ AgentsView(agents []teamserver.AgentView) {
 <div id="Agents" class="basis-[50svw] dashboard-element flex flex-col">
     <div id="agent-dummy" hx-ext="sse" sse-connect="/api/agents/register/listen" sse-swap="agent" hx-swap="none"></div>
+    <div id="agent-updated-dummy" hx-ext="sse" sse-connect="/api/agents/callbackTime/listen" sse-swap="agent"
+        hx-swap="none"></div>
     <h2 class="dashboard-element-header">Agents</h2>
     <div class="grow rounded-md m-1 border-2 border-zinc-500 bg-neutral-900 flex flex-col">
         <div class="ml-1 grid grid-cols-5 gap-2">
@@ -34,7 +36,8 @@ templ AgentsView(agents []teamserver.AgentView) {
 templ agentEntry(agent teamserver.AgentView) {
 if agent.AgentId % 2 == 1 {
 // Could make this a separate func but this has better locality of behaviour in terms of grid cols
-<div class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-950/90">
+<div id={ "agent-" + strconv.FormatUint(agent.AgentId, 10) }
+    class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-950/90">
     <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
     <p>{ agent.AgentInfo.Hostname }</p>
     <p>{ agent.AgentInfo.Username }</p>
@@ -45,7 +48,8 @@ if agent.AgentId % 2 == 1 {
     }
 </div>
 } else {
-<div class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-900">
+<div id={ "agent-" + strconv.FormatUint(agent.AgentId, 10) }
+    class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-900">
     <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
     <p>{ agent.AgentInfo.Hostname }</p>
     <p>{ agent.AgentInfo.Username }</p>
@@ -65,6 +69,12 @@ if agent.AgentId % 2 == 1 {
 
 templ AgentOOB(agent teamserver.AgentView) {
 <div hx-swap-oob="beforeend:#agent-table-body">
+    @agentEntry(agent)
+</div>
+}
+
+templ UpdatedAgentOOB(agent teamserver.AgentView) {
+<div id={ "agent-" + strconv.FormatUint(agent.AgentId, 10) } hx-swap-oob="true">
     @agentEntry(agent)
 </div>
 }
