@@ -26,7 +26,7 @@ func TestSaveAndGetTaskResult(t *testing.T) {
 
 	validAgents := make([]teamserver.Agent, 2)
 	for i := range len(validAgents) {
-		agent, err := testedServices.agentService.AddAgent()
+		agent, err := testedServices.agentService.AddAgent(teamserver.AgentRegisterInfo{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -99,7 +99,7 @@ func TestGetTaskResultAndResultsMultiAgent(t *testing.T) {
 	tasks := make([]teamserver.Task, len(agents))
 	const testTaskPref = "test task"
 	for i := range len(agents) {
-		agent, err := testedServices.agentService.AddAgent()
+		agent, err := testedServices.agentService.AddAgent(teamserver.AgentRegisterInfo{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -174,7 +174,7 @@ func TestGetTaskResults(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	validAgent, err := testedServices.agentService.AddAgent()
+	validAgent, err := testedServices.agentService.AddAgent(teamserver.AgentRegisterInfo{})
 	if err != nil {
 		t.Fatal(err)
 	}

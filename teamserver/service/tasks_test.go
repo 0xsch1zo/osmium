@@ -13,7 +13,7 @@ func TestAddTaskAndTaskExists(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	agentId, err := testedServices.agentService.AddAgent()
+	agentId, err := testedServices.agentService.AddAgent(teamserver.AgentRegisterInfo{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestGetTasks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	agent, err := testedServices.agentService.AddAgent()
+	agent, err := testedServices.agentService.AddAgent(teamserver.AgentRegisterInfo{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +86,7 @@ func TestGetTasksWithStatuses(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	agent, err := testedServices.agentService.AddAgent()
+	agent, err := testedServices.agentService.AddAgent(teamserver.AgentRegisterInfo{})
 	if err != nil {
 		t.Fatal(err)
 	}

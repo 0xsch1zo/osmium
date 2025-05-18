@@ -18,22 +18,28 @@ type testedServices struct {
 }
 
 func newTestedServices() (*testedServices, error) {
-	database, err := database.NewDatabase(":memory:")
+	db, err := database.NewDatabase(":memory:")
 	if err != nil {
 		return nil, err
 	}
 
-	agentRepo := (*database).NewAgentRepository()
-	taskQueueRepo := (*database).NewTasksRepository()
-	taskResultsRepo := (*database).NewTaskResultsRepository()
-	authorizationRepo := (*database).NewAuthorizationRepository()
-	eventLogService := service.NewEventLogService((*database).NewEventLogRepository())
+	agentRepo := (*db).NewAgentRepository()
+	tasksRepo := (*db).NewTasksRepository()
+	taskResultsRepo := (*db).NewTaskResultsRepository()
+	authRepo := (*db).NewAuthorizationRepository()
+	eventLogRepo := (*db).NewEventLogRepository()
+
+	eventLogService := service.NewEventLogService(eventLogRepo)
+	agentService := service.NewAgentService(agentRepo, eventLogService)
+	tasksService := service.NewTasksService(tasksRepo, agentService, eventLogService)
+	taskResultsService := service.NewTaskResultsService(taskResultsRepo, agentService, tasksService, eventLogService)
+	authorizationService := service.NewAuthorizationService(authRepo, testingJwtKey, eventLogService)
 
 	return &testedServices{
-		agentService:         service.NewAgentService(agentRepo, eventLogService),
-		tasksService:         service.NewTasksService(taskQueueRepo, agentRepo, eventLogService),
-		taskResultsService:   service.NewTaskResultsService(taskResultsRepo, agentRepo, taskQueueRepo, eventLogService),
-		authorizationService: service.NewAuthorizationService(authorizationRepo, testingJwtKey, eventLogService),
+		agentService:         agentService,
+		tasksService:         tasksService,
+		taskResultsService:   taskResultsService,
+		authorizationService: authorizationService,
 		eventLogService:      eventLogService,
 	}, nil
 }
