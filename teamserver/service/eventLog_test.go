@@ -82,5 +82,4 @@ func TestRemoveEventLogCallback(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		break
 	}
-
 }

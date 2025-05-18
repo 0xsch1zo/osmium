@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/sentientbottleofwine/osmium/teamserver"
 )
@@ -78,4 +79,36 @@ func TestListAgents(t *testing.T) {
 		}
 	}
 	t.Fatal("Agent not found when listed")
+}
+
+func TestUpdateLastCallbackTime(t *testing.T) {
+	testedServices, err := newTestedServices()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	agent, err := testedServices.agentService.AddAgent(teamserver.AgentRegisterInfo{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	beforeLastCallbackTime := time.Now()
+	// Last callback time is kept ot the accuracy of a second. Need to wait to be able to compare time
+	time.Sleep(1 * time.Second)
+	_, err = testedServices.tasksService.GetNewTasks(agent.AgentId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	agent, err = testedServices.agentService.GetAgent(agent.AgentId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if agent.AgentInfo.LastCallback.Before(beforeLastCallbackTime) {
+		t.Fatalf("LastCallback time is invalid, should be after %s but is %s",
+			beforeLastCallbackTime.Format(time.DateTime),
+			agent.AgentInfo.LastCallback.Format(time.DateTime),
+		)
+	}
 }
