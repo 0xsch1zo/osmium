@@ -112,12 +112,12 @@ func NewTasksService(tasksRepository *TasksRepository, agentService *AgentServic
 func NewTaskResultsService(
 	taskResultsRepository *TaskResultsRepository,
 	agentService *AgentService,
-	tasksRepository *TasksRepository,
+	tasksService *TasksService,
 	eventLogService *EventLogService,
 ) *TaskResultsService {
 	return &TaskResultsService{
 		agentService:          agentService,
-		tasksService:          NewTasksService(tasksRepository, agentService, eventLogService),
+		tasksService:          tasksService,
 		taskResultsRepository: *taskResultsRepository,
 		eventLogService:       eventLogService,
 	}

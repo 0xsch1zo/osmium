@@ -31,9 +31,13 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 	tasksRepo := (*db).NewTasksRepository()
 	taskResultsRepo := (*db).NewTaskResultsRepository()
 	authRepo := (*db).NewAuthorizationRepository()
+	eventLogRepo := (*db).NewEventLogRepository()
 
-	eventLogService := service.NewEventLogService((*db).NewEventLogRepository())
+	eventLogService := service.NewEventLogService(eventLogRepo)
 	agentService := service.NewAgentService(agentRepo, eventLogService)
+	tasksService := service.NewTasksService(tasksRepo, agentService, eventLogService)
+	taskResultsService := service.NewTaskResultsService(taskResultsRepo, agentService, tasksService, eventLogService)
+	authorizationService := service.NewAuthorizationService(authRepo, os.Getenv("JWT_SECRET"), eventLogService)
 
 	server := Server{
 		mux: mux,
@@ -43,9 +47,9 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 		},
 		config:               config,
 		AgentService:         agentService,
-		TasksService:         service.NewTasksService(tasksRepo, agentService, eventLogService),
-		TaskResultsService:   service.NewTaskResultsService(taskResultsRepo, agentService, tasksRepo, eventLogService),
-		AuthorizationService: service.NewAuthorizationService(authRepo, os.Getenv("JWT_SECRET"), eventLogService),
+		TasksService:         tasksService,
+		TaskResultsService:   taskResultsService,
+		AuthorizationService: authorizationService,
 		EventLogService:      eventLogService,
 	}
 

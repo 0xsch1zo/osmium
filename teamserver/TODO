@@ -4,6 +4,4 @@ limit password length to prevent ddos
 log better for client erorrs
 pass more to ServiceServerErrHandler as argument to get better errors
 multiline support
-live update last callback
 listeners should return after error
-redisign service construction because it's just a fucking mess
