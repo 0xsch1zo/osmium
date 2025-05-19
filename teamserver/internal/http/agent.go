@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -208,7 +209,8 @@ func (s *Server) CallbackTimeUpdatedListen(w http.ResponseWriter, r *http.Reques
 	handle := s.AgentService.AddOnCallbackTimeUpdatedCallback(func(agent teamserver.Agent) {
 		buf := bytes.Buffer{}
 		agentView := teamserver.AgentView{AgentId: agent.AgentId, AgentInfo: agent.AgentInfo}
-		err := templates.UpdatedAgentOOB(agentView).Render(r.Context(), &buf)
+
+		err := templates.UpdatedAgentOOB(agentView).Render(context.Background(), &buf)
 		if err != nil {
 			log.Print(err)
 			return

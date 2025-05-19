@@ -25,7 +25,9 @@ templ AgentsView(agents []teamserver.AgentView) {
             <h5 class="text-color-neutral-500/10 italic">No agents registered yet...</h5>
             }
             for _, agent := range agents {
-            @agentEntry(agent)
+            <div id={ "agent-" + strconv.FormatUint(agent.AgentId, 10) }>
+                @agentEntry(agent)
+            </div>
             }
         </div>
         <div class="grow bg-neutral-950/90"></div>
@@ -36,8 +38,7 @@ templ AgentsView(agents []teamserver.AgentView) {
 templ agentEntry(agent teamserver.AgentView) {
 if agent.AgentId % 2 == 1 {
 // Could make this a separate func but this has better locality of behaviour in terms of grid cols
-<div id={ "agent-" + strconv.FormatUint(agent.AgentId, 10) }
-    class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-950/90">
+<div class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-950/90">
     <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
     <p>{ agent.AgentInfo.Hostname }</p>
     <p>{ agent.AgentInfo.Username }</p>
@@ -48,8 +49,7 @@ if agent.AgentId % 2 == 1 {
     }
 </div>
 } else {
-<div id={ "agent-" + strconv.FormatUint(agent.AgentId, 10) }
-    class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-900">
+<div class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-900">
     <p>{ strconv.FormatUint(agent.AgentId, 10) }</p>
     <p>{ agent.AgentInfo.Hostname }</p>
     <p>{ agent.AgentInfo.Username }</p>
