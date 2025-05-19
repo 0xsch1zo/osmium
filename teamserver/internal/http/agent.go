@@ -188,11 +188,13 @@ func (s *Server) AddAgentListen(w http.ResponseWriter, r *http.Request) {
 		err := templates.AgentOOB(agentView).Render(r.Context(), &buf)
 		if err != nil {
 			log.Print(err)
+			return
 		}
 
 		err = sendSSE(w, "agent", buf.String())
 		if err != nil {
 			log.Print(err)
+			return
 		}
 	})
 	defer s.AgentService.RemoveOnAgentAddedCallback(handle)
@@ -209,11 +211,13 @@ func (s *Server) CallbackTimeUpdatedListen(w http.ResponseWriter, r *http.Reques
 		err := templates.UpdatedAgentOOB(agentView).Render(r.Context(), &buf)
 		if err != nil {
 			log.Print(err)
+			return
 		}
 
 		err = sendSSE(w, "agent", buf.String())
 		if err != nil {
 			log.Print(err)
+			return
 		}
 	})
 	defer s.AgentService.RemoveOnAgentAddedCallback(handle)

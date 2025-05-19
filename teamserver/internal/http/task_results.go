@@ -103,17 +103,20 @@ func (server *Server) TaskResultsListen(w http.ResponseWriter, r *http.Request) 
 			taskResultOut, err := server.TaskResultsService.GetTaskResult(agentId, taskResult.TaskId)
 			if err != nil {
 				log.Print(err)
+				return
 			}
 
 			buf := bytes.Buffer{}
 			err = templates.TaskResultOOB(*taskResultOut).Render(r.Context(), &buf)
 			if err != nil {
 				log.Print(err)
+				return
 			}
 
 			err = sendSSE(w, "task-result", buf.String())
 			if err != nil {
 				log.Print(err)
+				return
 			}
 		}
 	})
