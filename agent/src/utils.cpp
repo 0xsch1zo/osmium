@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include <array>
+#include <cctype>
 #include <stdexcept>
 #include <windows.h>
 
@@ -17,5 +18,15 @@ std::string exec(const std::string &cmd) {
   }
 
   pclose(pipe);
+  return result;
+}
+
+std::string sanitizeEscapes(const std::string &str) {
+  std::string result;
+  result.reserve(str.size());
+  for (const auto c : str) {
+    if (std::isprint(c))
+      result.push_back(c);
+  }
   return result;
 }
