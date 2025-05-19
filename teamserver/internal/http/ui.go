@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/sentientbottleofwine/osmium/teamserver/internal/templates"
@@ -10,7 +11,7 @@ func (server *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := r.Cookie("token")
 	if err == http.ErrNoCookie {
 		loginPage := templates.LoginPage()
-		err := loginPage.Render(r.Context(), w)
+		err := loginPage.Render(context.Background(), w)
 		if err != nil {
 			ApiErrorHandler(err, w)
 			return
@@ -43,7 +44,7 @@ func (server *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 		templates.AgentsView(agents),
 		templates.EventLogView(eventLog),
 	)
-	err = homePage.Render(r.Context(), w)
+	err = homePage.Render(context.Background(), w)
 	if err != nil {
 		ApiErrorHandler(err, w)
 		return

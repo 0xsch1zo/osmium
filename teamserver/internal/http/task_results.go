@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -82,7 +83,7 @@ func (server *Server) GetTaskResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = templates.TaskResults(agentId, taskResults).Render(r.Context(), w)
+	err = templates.TaskResults(agentId, taskResults).Render(context.Background(), w)
 	if err != nil {
 		ApiErrorHandler(err, w)
 		return
@@ -107,7 +108,7 @@ func (server *Server) TaskResultsListen(w http.ResponseWriter, r *http.Request) 
 			}
 
 			buf := bytes.Buffer{}
-			err = templates.TaskResultOOB(*taskResultOut).Render(r.Context(), &buf)
+			err = templates.TaskResultOOB(*taskResultOut).Render(context.Background(), &buf)
 			if err != nil {
 				log.Print(err)
 				return

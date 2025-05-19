@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -29,7 +30,7 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 	if errors.As(err, &targetInvalidCreds) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "text/html")
-		err = templates.LoginForm(true).Render(r.Context(), w)
+		err = templates.LoginForm(true).Render(context.Background(), w)
 		if err != nil {
 			ApiErrorHandler(err, w)
 			return
