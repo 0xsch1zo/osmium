@@ -4,4 +4,3 @@ limit password length to prevent ddos
 log better for client erorrs
 pass more to ServiceServerErrHandler as argument to get better errors
 multiline support
-use the right context during templ render

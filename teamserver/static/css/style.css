@@ -10,7 +10,7 @@ body {
 
 .agent:hover
 .agent-reveal-on-hover {
-    display: flex;
+    display: grid;
 }
 
 .task-result-expander-reveal-on-hover{

@@ -47,6 +47,11 @@ if agent.AgentId % 2 == 1 {
     } else {
     <p>{ agent.AgentInfo.LastCallback.Format(time.DateTime) }</p>
     }
+    <button
+        class="agent-reveal-on-hover bg-neutral-950 active:bg-neutral-600 border-1 border-neutral-600 px-2 mr-1 rounded-md text-sm"
+        onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>
+        Choose agent
+    </button>
 </div>
 } else {
 <div class="agent grid grid-cols-5 gap-2 justify-between p-2 bg-neutral-900">
@@ -58,13 +63,13 @@ if agent.AgentId % 2 == 1 {
     } else {
     <p>{ agent.AgentInfo.LastCallback.Format(time.DateTime) }</p>
     }
+    <button
+        class="agent-reveal-on-hover bg-neutral-950 active:bg-neutral-600 border-1 border-neutral-600 px-2 mr-1 rounded-md text-sm"
+        onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>
+        Choose agent
+    </button>
 </div>
 }
-<button
-    class="agent-reveal-on-hover bg-neutral-950 active:bg-neutral-600 border-1 border-neutral-600 px-2 mr-1 rounded-md text-sm"
-    onclick={ templ.JSFuncCall("termInit", agent.AgentId) }>
-    Choose agent
-</button>
 }
 
 templ AgentOOB(agent teamserver.AgentView) {
