@@ -56,15 +56,18 @@ func NewServer(config *config.Config, db *database.Database) (*Server, error) {
 	server.registerAgentApiRouter()
 	server.registerFrontendRouter()
 
-	target := &teamserver.ClientError{}
-	err := server.AuthorizationService.UsernameExists(config.Username)
-	if errors.As(err, &target) {
-		err := server.AuthorizationService.Register(config.Username, config.Password)
-		if err != nil {
+	for _, user := range config.AuthorizedUsers {
+		target := &teamserver.ClientError{}
+		err := server.AuthorizationService.UsernameExists(user.Username)
+		if errors.As(err, &target) {
+			err := server.AuthorizationService.Register(user.Username, user.Password)
+			if err != nil {
+				return nil, err
+			}
+		} else if err != nil {
 			return nil, err
 		}
-	} else if err != nil {
-		return nil, err
+
 	}
 
 	return &server, nil

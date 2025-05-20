@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS TaskResults(
     UNIQUE (AgentId, TaskId)
 );
 
+DROP TABLE IF EXISTS Users;
 CREATE TABLE IF NOT EXISTS Users(
     UserId INT PRIMARY KEY,
     Username TEXT,

@@ -9,13 +9,17 @@ import (
 
 const defaultConfigPath = "config.toml"
 
+type AuthorizedUser struct {
+	Username string `toml:"username"`
+	Password string `toml:"password"`
+}
+
 type Config struct {
-	Port            uint16 `toml:"port"`
-	Https           bool   `toml:"https"`
-	CertificatePath string `toml:"cert"`
-	KeyPath         string `toml:"key"`
-	Username        string `toml:"username"`
-	Password        string `toml:"password"`
+	Port            uint16           `toml:"port"`
+	Https           bool             `toml:"https"`
+	CertificatePath string           `toml:"cert"`
+	KeyPath         string           `toml:"key"`
+	AuthorizedUsers []AuthorizedUser `toml:"authorized"`
 }
 
 func ParseConfig(path string) (*Config, error) {
@@ -34,10 +38,11 @@ func ParseDefaultConfig() (*Config, error) {
 	_, err := os.Stat(defaultConfigPath)
 	if errors.Is(err, os.ErrNotExist) {
 		return &Config{
-			Port:     8080,
-			Https:    false,
-			Username: "osmium",
-			Password: "I'm losing sanity",
+			Port:  8080,
+			Https: false,
+			AuthorizedUsers: []AuthorizedUser{
+				{Username: "osmium", Password: "I'm losing sanity"},
+			},
 		}, nil
 	} else if err != nil {
 		return nil, err
