@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"log"
 	"os"
 
 	"github.com/BurntSushi/toml"
@@ -31,7 +32,12 @@ func ParseConfig(path string) (*Config, error) {
 
 	var config Config
 	_, err = toml.NewDecoder(configFile).Decode(&config)
-	return &config, err
+	if err != nil {
+		return nil, err
+	}
+
+	log.Print("Parsed config successfully")
+	return &config, nil
 }
 
 func ParseDefaultConfig() (*Config, error) {

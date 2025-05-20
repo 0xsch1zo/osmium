@@ -1,6 +1,0 @@
-port = 8080
-https = false
-cert = "./.env/server.crt"
-key = "./.env/server.key"
-username = "kys"
-password = "now"
