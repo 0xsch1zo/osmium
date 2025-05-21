@@ -37,7 +37,6 @@ target_compile_options(agent
 )
 
 target_link_libraries(agent
-    PRIVATE nullgate
     PRIVATE cpr::cpr
     PRIVATE nlohmann_json::nlohmann_json
 )
